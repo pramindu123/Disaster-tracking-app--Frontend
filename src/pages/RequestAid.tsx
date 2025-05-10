@@ -27,7 +27,7 @@ export default function RequestAid() {
           <h1 className="text-3xl md:text-4xl font-bold text-center mb-8">Post Disaster Aid Request</h1>
           <form ref={formRef} className="space-y-6" onSubmit={handleSubmit} autoComplete="off">
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
-              <label className="block text-xl md:text-2xl font-medium md:w-44">Full Name <span className="font-bold">:</span></label>
+              <label className="block text-xl md:text-2xl font-medium md:w-44">Full Name</label>
               <input
                 type="text"
                 required
@@ -37,7 +37,7 @@ export default function RequestAid() {
             </div>
             <div className="border-t border-gray-200" />
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
-              <label className="block text-xl md:text-2xl font-medium md:w-44">Contact No <span className="font-bold">:</span></label>
+              <label className="block text-xl md:text-2xl font-medium md:w-44">Contact No</label>
               <input
                 type="text"
                 required
@@ -47,7 +47,7 @@ export default function RequestAid() {
             </div>
             <div className="border-t border-gray-200" />
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
-              <label className="block text-xl md:text-2xl font-medium md:w-44">Location <span className="font-bold">:</span></label>
+              <label className="block text-xl md:text-2xl font-medium md:w-44">Location</label>
               <input
                 type="text"
                 required
@@ -84,7 +84,7 @@ export default function RequestAid() {
             </div>
             <div className="border-t border-gray-200" />
             <div className="flex flex-col gap-1 md:flex-row md:items-start">
-              <label className="block text-xl md:text-2xl font-medium md:w-44 md:mt-2">Description <span className="font-bold">:</span></label>
+              <label className="block text-xl md:text-2xl font-medium md:w-44 md:mt-2">Description</label>
               <textarea
                 required
                 placeholder="Describe your situation or needs"

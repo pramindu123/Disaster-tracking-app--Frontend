@@ -44,7 +44,7 @@ export default function SubmitSymptoms() {
           <h1 className="text-3xl md:text-4xl font-bold text-center mb-8">Submit Symptoms</h1>
           <form ref={formRef} className="space-y-6" onSubmit={handleSubmit} autoComplete="off">
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
-              <label className="block text-xl md:text-2xl font-medium md:w-44">Full Name <span className="font-bold">:</span></label>
+              <label className="block text-xl md:text-2xl font-medium md:w-44">Full Name</label>
               <input
                 type="text"
                 required
@@ -54,7 +54,7 @@ export default function SubmitSymptoms() {
             </div>
             <div className="border-t border-gray-200" />
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
-              <label className="block text-xl md:text-2xl font-medium md:w-44">Contact Information <span className="font-bold">:</span></label>
+              <label className="block text-xl md:text-2xl font-medium md:w-44">Contact Information</label>
               <input
                 type="text"
                 required
@@ -64,7 +64,7 @@ export default function SubmitSymptoms() {
             </div>
             <div className="border-t border-gray-200" />
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
-              <label className="block text-xl md:text-2xl font-medium md:w-44">Location <span className="font-bold">:</span></label>
+              <label className="block text-xl md:text-2xl font-medium md:w-44">Location</label>
               <input
                 type="text"
                 required
@@ -74,7 +74,7 @@ export default function SubmitSymptoms() {
             </div>
             <div className="border-t border-gray-200" />
             <div className="flex flex-col gap-1 md:flex-row md:items-start">
-              <label className="block text-xl md:text-2xl font-medium md:w-44 md:mt-2">Symptom Description <span className="font-bold">:</span></label>
+              <label className="block text-xl md:text-2xl font-medium md:w-44 md:mt-2">Symptom Description</label>
               <textarea
                 required
                 placeholder="Describe your symptoms"
@@ -83,7 +83,7 @@ export default function SubmitSymptoms() {
             </div>
             <div className="border-t border-gray-200" />
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
-              <label className="block text-xl md:text-2xl font-medium md:w-44">Upload Image <span className="font-bold">:</span></label>
+              <label className="block text-xl md:text-2xl font-medium md:w-44">Upload Image</label>
               <div className="w-full flex flex-col md:flex-row md:items-center md:ml-2 space-y-2 md:space-y-0 md:space-x-4">
                 <label className="relative">
                   <input
