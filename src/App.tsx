@@ -1,17 +1,42 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
 import Alerts from "./pages/Alerts";
 import SubmitSymptoms from "./pages/SubmitSymptoms";
 import RequestAid from "./pages/RequestAid";
-import Home from "./pages/Home";
-import Login from './pages/Login';
-import Signup from './pages/Signup';
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import VolunteerDashboardLayout from "./pages/volunteer/VolunteerDashboardLayout";
+import DashboardHome from "./pages/volunteer/DashboardHome";
+import MyContributions from "./pages/volunteer/MyContributions";
+import AddContribution from "./pages/volunteer/AddContribution";
+import SystemSettings from "./pages/volunteer/SystemSettings";
+import GNDashboardLayout from "./pages/GN/GNDashboardLayout";
+import GNDashboardHome from "./pages/GN/GNDashboardHome";
+import ReviewSymptomReports from "./pages/GN/ReviewSymptomReports";
+import SubmitManualReport from "./pages/GN/SubmitManualReport";
+import ResolvedAlerts from "./pages/GN/ResolvedAlerts";
+import ApproveAidRequests from "./pages/GN/ApproveAidRequests";
+import Volunteers from "./pages/GN/Volunteers";
+import DMCDashboardLayout from "./pages/DMC/DMCDashboardLayout";
+import DMCDashboardHome from "./pages/DMC/DMCDashboardHome";
+import DMCAlerts from "./pages/DMC/DMCAlerts";
+import DMCReports from "./pages/DMC/DMCReports";
+import DMCAidRequests from "./pages/DMC/DMCAidRequests";
+import DMCVolunteers from "./pages/DMC/DMCVolunteers";
 
-export default function App() {
+function AppContent() {
+  const location = useLocation();
+  // Hide Navbar on any dashboard route (volunteer, GN, or DMC)
+  const hideNavbar =
+    location.pathname.startsWith("/volunteer-dashboard") ||
+    location.pathname.startsWith("/gn-dashboard") ||
+    location.pathname.startsWith("/dmc-dashboard");
+
   return (
-    <Router>
-      <Navbar />
+    <>
+      {!hideNavbar && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/alerts" element={<Alerts />} />
@@ -19,7 +44,41 @@ export default function App() {
         <Route path="/request-aid" element={<RequestAid />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        {/* Volunteer dashboard routes */}
+        <Route path="/volunteer-dashboard" element={<VolunteerDashboardLayout />}>
+          <Route index element={<DashboardHome />} />
+          <Route path="my-contributions" element={<MyContributions />} />
+          <Route path="add-contribution" element={<AddContribution />} />
+          <Route path="settings" element={<SystemSettings />} />
+        </Route>
+        {/* General volunteer dashboard routes */}
+        <Route path="/gn-dashboard" element={<GNDashboardLayout />}>
+          <Route index element={<GNDashboardHome />} />
+          <Route path="review-reports" element={<ReviewSymptomReports />} />
+          <Route path="submit-manual-reports" element={<SubmitManualReport />} />
+          <Route path="resolved-alerts" element={<ResolvedAlerts />} />
+          <Route path="approve-aid-requests" element={<ApproveAidRequests />} />
+          <Route path="volunteers" element={<Volunteers />} />
+          {/* Add other GN dashboard child routes here */}
+        </Route>
+        {/* DMC dashboard routes */}
+        <Route path="/dmc-dashboard" element={<DMCDashboardLayout />}>
+          <Route index element={<DMCDashboardHome />} />
+          <Route path="alerts" element={<DMCAlerts />} />
+          <Route path="reports" element={<DMCReports />} />
+          <Route path="aid-requests" element={<DMCAidRequests />} />
+          <Route path="volunteers" element={<DMCVolunteers />} />
+          {/* Add more DMC routes here */}
+        </Route>
       </Routes>
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }

@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 
 export default function Signup() {
   const [name, setName] = useState("");
-  const [province, setProvince] = useState("");
+  const [district, setDistrict] = useState("");
   const [gnDivision, setGnDivision] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -31,13 +32,13 @@ export default function Signup() {
             />
           </div>
           <div>
-            <label className="block text-lg font-medium mb-2">Province</label>
+            <label className="block text-lg font-medium mb-2">District</label>
             <input
               type="text"
               required
-              value={province}
-              onChange={e => setProvince(e.target.value)}
-              placeholder="Enter your province"
+              value={district}
+              onChange={e => setDistrict(e.target.value)}
+              placeholder="Enter your district"
               className="w-full bg-gray-100 rounded-lg h-12 px-4 text-lg focus:outline-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
             />
           </div>
@@ -49,6 +50,17 @@ export default function Signup() {
               value={gnDivision}
               onChange={e => setGnDivision(e.target.value)}
               placeholder="Enter your GN Division"
+              className="w-full bg-gray-100 rounded-lg h-12 px-4 text-lg focus:outline-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+            />
+          </div>
+          <div>
+            <label className="block text-lg font-medium mb-2">Contact Number</label>
+            <input
+              type="text"
+              required
+              value={contactNumber}
+              onChange={e => setContactNumber(e.target.value)}
+              placeholder="Enter your contact number"
               className="w-full bg-gray-100 rounded-lg h-12 px-4 text-lg focus:outline-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
             />
           </div>
@@ -99,4 +111,4 @@ export default function Signup() {
       </div>
     </div>
   );
-} 
+}

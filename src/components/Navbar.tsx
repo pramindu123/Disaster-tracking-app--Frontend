@@ -1,15 +1,31 @@
-import React, { useState } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { useState, useEffect } from 'react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+import { FaBars, FaTimes } from 'react-icons/fa';
 
-export default function Navbar() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location]);
+
   const navLinks = [
-    { to: "/", label: "Home" },
-    { to: "/alerts", label: "Alerts" },
-    { to: "/submit-symptoms", label: "Submit Symptoms" },
-    { to: "/request-aid", label: "Request Aid" },
+    { path: '/', label: 'Home' },
+    { path: '/alerts', label: 'Alerts' },
+    { path: '/submit-symptoms', label: 'Submit Symptoms' },
+    { path: '/request-aid', label: 'Request Aid' },
   ];
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -29,26 +45,11 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Hamburger for mobile */}
-          <button
-            className="sm:hidden p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              {mobileMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
-
           {/* Desktop Navigation */}
           <div className="hidden sm:flex sm:items-center sm:space-x-4">
             <div className="flex space-x-2">
               {navLinks.map(link => (
-                <NavLink key={link.to} to={link.to} className={linkClass} end={link.to === "/"}>
+                <NavLink key={link.path} to={link.path} className={linkClass} end={link.path === "/"}>
                   {link.label}
                 </NavLink>
               ))}
@@ -62,48 +63,60 @@ export default function Navbar() {
               </Link>
             </div>
           </div>
+
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="sm:hidden p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Toggle menu"
+          >
+            {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+          </button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 w-full h-full bg-white z-50 flex flex-col sm:hidden shadow-lg">
-          <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
-            <Link to="/" className="flex items-center h-12 select-none">
-              <span className="text-2xl font-extrabold tracking-wide bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-lg">
-                Hazard<span className="text-pink-500">X</span>
-              </span>
-            </Link>
+      {/* Mobile menu overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 sm:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Mobile menu sliding panel */}
+      <div 
+        className={`fixed top-0 right-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 sm:hidden ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <div className="flex flex-col h-full">
+          <div className="flex justify-end p-4">
             <button
-              className="p-2 rounded-lg hover:bg-gray-100"
-              onClick={() => setMobileMenuOpen(false)}
-              aria-label="Close menu"
+              onClick={() => setIsOpen(false)}
+              className="p-2 rounded-md text-gray-600 hover:text-blue-600 focus:outline-none"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <FaTimes size={24} />
             </button>
           </div>
-          <div className="flex-1 p-4 flex flex-col">
-            <div className="space-y-2">
-              {navLinks.map(link => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  className={({ isActive }) =>
-                    `block px-4 py-3 rounded-lg transition-all duration-200 ${
-                      isActive 
-                        ? "bg-blue-600 text-white" 
-                        : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-                    }`
-                  }
-                  end={link.to === "/"}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </NavLink>
-              ))}
-            </div>
+          
+          <div className="flex flex-col px-4 space-y-4">
+            {navLinks.map((link) => (
+              <NavLink
+                key={link.path}
+                to={link.path}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg transition-all duration-200 ${
+                    isActive 
+                      ? "bg-blue-600 text-white" 
+                      : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                  }`
+                }
+                end={link.path === "/"}
+                onClick={() => setIsOpen(false)}
+              >
+                {link.label}
+              </NavLink>
+            ))}
             <div className="mt-6 space-y-3">
               <Link to="/login" className="w-full block px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium text-center">
                 Log in
@@ -114,7 +127,9 @@ export default function Navbar() {
             </div>
           </div>
         </div>
-      )}
+      </div>
     </nav>
   );
-} 
+};
+
+export default Navbar; 

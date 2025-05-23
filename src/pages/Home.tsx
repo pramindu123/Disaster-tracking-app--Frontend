@@ -2,12 +2,12 @@ import React, { useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 const aidRequests = [
-  { name: "A.M. Jagath Perera", location: "Kaluthara", aid: "Dry rations", contact: "0769561473", officer: "Mr.Ruwan senanay..." },
-  { name: "W.M.C. Kumara", location: "Hattan", aid: "Clothing", contact: "0729631474", officer: "Ms.Thharushi Raja..." },
-  { name: "W.N. Amila kariyawasam", location: "Anuradhapura", aid: "Medical S...", contact: "0756412379", officer: "Mr.Duleetha Amar..." },
-  { name: "S.P.Pradeep Manawadu", location: "Gampaha", aid: "Tempory...", contact: "0743697412", officer: "Ms.Malini Jayawe..." },
-  { name: "L.U.Kamal Bandara", location: "Kandy", aid: "Drinking...", contact: "0772336974", officer: "Ms.Pradeepa Rup..." },
-  { name: "R.P. Sameera kodikara", location: "Puttlam", aid: "Baby Ess...", contact: "0764435794", officer: "Mr.Nimal Perera" },
+  { id: 1, recipientName: "Saman Perera", type: "Dry rations", district: "Kaluthara", gnDivision: "Division A", gnOfficer: "Mr.Ruwan Senanayake", contactNo: "0769561473" },
+  { id: 2, recipientName: "Nimal Silva", type: "Clothing", district: "Hattan", gnDivision: "Division B", gnOfficer: "Ms.Thharushi Raja", contactNo: "0729631474" },
+  { id: 3, recipientName: "Kumari Jayasuriya", type: "Medical Supplies", district: "Anuradhapura", gnDivision: "Division C", gnOfficer: "Mr.Duleetha Amar", contactNo: "0756412379" },
+  { id: 4, recipientName: "Ruwanthi Fernando", type: "Temporary Shelter", district: "Gampaha", gnDivision: "Division D", gnOfficer: "Ms.Malini Jayawe", contactNo: "0743697412" },
+  { id: 5, recipientName: "Priyantha Rathnayake", type: "Drinking Water", district: "Kandy", gnDivision: "Division E", gnOfficer: "Ms.Pradeepa Rup", contactNo: "0772336974" },
+  { id: 6, recipientName: "Harsha Ekanayake", type: "Baby Essentials", district: "Puttlam", gnDivision: "Division F", gnOfficer: "Mr.Nimal Perera", contactNo: "0764435794" },
 ];
 const rowsPerPage = 6;
 
@@ -199,21 +199,25 @@ export default function Home() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipient</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aid Type</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Officer</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipient Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">District</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GN Division</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GN Officer</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact No</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedRows.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50 transition-colors duration-200">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{row.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.location}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.aid}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.contact}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.officer}</td>
+                  {aidRequests.map((req, idx) => (
+                    <tr key={req.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">{idx + 1}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{req.recipientName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{req.type}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{req.district}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{req.gnDivision}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{req.gnOfficer}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{req.contactNo}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -314,4 +318,4 @@ export default function Home() {
       </footer>
     </div>
   );
-} 
+}
