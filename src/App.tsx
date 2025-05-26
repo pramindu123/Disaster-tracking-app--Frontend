@@ -25,6 +25,7 @@ import DMCAlerts from "./pages/DMC/DMCAlerts";
 import DMCReports from "./pages/DMC/DMCReports";
 import DMCAidRequests from "./pages/DMC/DMCAidRequests";
 import DMCVolunteers from "./pages/DMC/DMCVolunteers";
+import { UserProvider } from "./context/UserContext";
 
 function AppContent() {
   const location = useLocation();
@@ -77,8 +78,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <UserProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </UserProvider>
   );
 }

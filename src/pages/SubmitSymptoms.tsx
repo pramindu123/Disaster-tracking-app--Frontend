@@ -6,11 +6,23 @@ export default function SubmitSymptoms() {
   const [fileName, setFileName] = useState<string>("");
   const [fileUrl, setFileUrl] = useState<string>("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [contactNo, setContactNo] = useState("");
+  const [district, setDistrict] = useState("");
+  const [gnDivision, setGnDivision] = useState("");
+  const [dateTime, setDateTime] = useState("");
+  const [symptoms, setSymptoms] = useState("");
 
   const handleClear = () => {
     formRef.current?.reset();
     setFileName("");
     setFileUrl("");
+    setFullName("");
+    setContactNo("");
+    setDistrict("");
+    setGnDivision("");
+    setDateTime("");
+    setSymptoms("");
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,10 +41,56 @@ export default function SubmitSymptoms() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    handleClear();
-    setShowSuccess(true);
+    
+    try {
+        const formData = {
+            FullName: fullName,
+            ContactNo: contactNo,
+            District: district,
+            GNDivision: gnDivision,
+            DateTime: new Date(dateTime).toISOString(),
+            Symptoms: symptoms,
+            ImageUrl: fileUrl || ""
+        };
+
+        console.log('Submitting data:', formData); // Debug log
+
+        // Changed URL to match the controller's base endpoint
+        const response = await fetch("http://localhost:5069/api/Symptoms", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify(formData)
+        });
+
+        // Add more detailed error logging
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server response:', {
+                status: response.status,
+                statusText: response.statusText,
+                body: errorText
+            });
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('Success:', result);
+
+        if (result.success) {
+            setShowSuccess(true);
+            handleClear();
+        } else {
+            throw new Error(result.message || 'Submission failed');
+        }
+    } catch (error) {
+        console.error("Error details:", error);
+        alert("Failed to submit symptoms. Please try again.");
+    }
   };
 
   return (
@@ -47,6 +105,8 @@ export default function SubmitSymptoms() {
                 type="text"
                 required
                 placeholder="Enter your full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
                 className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
               />
             </div>
@@ -57,6 +117,8 @@ export default function SubmitSymptoms() {
                 type="text"
                 required
                 placeholder="Enter your contact number"
+                value={contactNo}
+                onChange={(e) => setContactNo(e.target.value)}
                 className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
               />
             </div>
@@ -67,6 +129,8 @@ export default function SubmitSymptoms() {
                 type="text"
                 required
                 placeholder="Enter your district"
+                value={district}
+                onChange={(e) => setDistrict(e.target.value)}
                 className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
               />
             </div>
@@ -77,6 +141,8 @@ export default function SubmitSymptoms() {
                 type="text"
                 required
                 placeholder="Enter your GN division"
+                value={gnDivision}
+                onChange={(e) => setGnDivision(e.target.value)}
                 className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
               />
             </div>
@@ -86,6 +152,8 @@ export default function SubmitSymptoms() {
               <input
                 type="datetime-local"
                 required
+                value={dateTime}
+                onChange={(e) => setDateTime(e.target.value)}
                 className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
               />
             </div>
@@ -95,6 +163,8 @@ export default function SubmitSymptoms() {
               <textarea
                 required
                 placeholder="Describe your symptoms"
+                value={symptoms}
+                onChange={(e) => setSymptoms(e.target.value)}
                 className="w-full bg-gray-100 rounded-lg h-24 md:h-28 px-4 py-2 text-base md:text-lg focus:outline-none md:ml-2 resize-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
               />
             </div>
