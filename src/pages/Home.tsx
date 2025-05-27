@@ -15,7 +15,7 @@ const aidRequests = [
   },
   {
     id: 2,
-    recipientName: "Nimal Silva",
+    recipientName: "Nimal Perera",
     type: "Clothing",
     district: "Gampaha",
     gnDivision: "Ragama",
