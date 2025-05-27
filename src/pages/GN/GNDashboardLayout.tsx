@@ -1,18 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { useUser } from "../../context/UserContext";
+import ReviewSymptomReports from "./ReviewSymptomReports"; // Adjust the import based on your file structure
 
 export default function GNDashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
-  const { user } = useUser();
-
-  // Redirect to login if user is not set
-  useEffect(() => {
-    if (!user) {
-      navigate("/login");
-    }
-  }, [user, navigate]);
+  const gnOfficer = {
+    name: "Example Name",
+    nic: "GN12345",
+    division: "Division A",
+    workerId: "GN-001",
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("loggedIn");
@@ -73,12 +71,10 @@ export default function GNDashboardLayout() {
         {/* Profile */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full mb-4 border-4 border-white shadow" />
-          <div className="text-base font-semibold mb-1">
-            Role: <span className="text-purple-600">{user?.role || "GN Officer"}</span>
-          </div>
-          <div className="text-sm mb-1">User ID: {user?.id ?? "N/A"}</div>
-          <div className="text-sm mb-1">GN Division: {user?.gndivision ?? "N/A"}</div>
-          <div className="text-sm mb-1">District: {user?.district ?? "N/A"}</div>
+          <div className="text-base font-semibold mb-1">Role: <span className="text-purple-600">GN Officer</span></div>
+          <div className="text-sm mb-1">User ID: {gnOfficer.nic}</div>
+          <div className="text-sm mb-1">Name: {gnOfficer.name}</div>
+          <div className="text-sm mb-1">Division: {gnOfficer.division}</div>
         </div>
         <hr className="border-gray-200 mb-4" />
         <nav className="flex flex-col gap-3 items-start mt-4 w-full">

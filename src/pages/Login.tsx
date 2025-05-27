@@ -1,55 +1,24 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useUser } from "../context/UserContext";
 
 export default function Login() {
-  const { setUser } = useUser();
   const [role, setRole] = useState("GN Officer");
-  const [userId, setUserId] = useState(""); // <-- changed from username
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await fetch("http://localhost:5262/api/Auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, password }), // Use userId as string
-    });
-
-    let data;
-    try {
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        alert(errorData.message || "Login failed");
-        return;
-      }
-      data = await response.json();
-    } catch {
-      alert("Server error: Invalid response from backend.");
-      return;
-    }
-
-    if (data.success) {
-      setUser({
-        id: data.id,
-        username: data.username,
-        role: data.role,
-        gndivision: data.gndivision,
-        district: data.district,
-        email: data.email,
-      });
-
-      if (data.role === "GN Officer") {
-        navigate("/gn-dashboard");
-      } else if (data.role === "DMC Officer") {
-        navigate("/dmc-dashboard");
-      } else if (data.role === "Volunteer") {
-        navigate("/volunteer-dashboard");
-      }
+    // Navigate based on selected role
+    if (role === "GN Officer") {
+      navigate("/gn-dashboard");
+    } else if (role === "DMC Officer") {
+      navigate("/dmc-dashboard");
+    } else if (role === "Volunteer") {
+      navigate("/volunteer-dashboard");
     } else {
-      alert(data.message || "Login failed");
+      alert("Invalid role selected.");
     }
   };
 
@@ -83,8 +52,8 @@ export default function Login() {
             <input
               type="text"
               required
-              value={userId}
-              onChange={e => setUserId(e.target.value)}
+              value={username}
+              onChange={e => setUsername(e.target.value)}
               placeholder="Enter your user ID"
               className="w-full bg-gray-100 rounded-lg h-12 px-4 text-lg focus:outline-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
             />
