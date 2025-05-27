@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
-import { FaBars, FaTimes } from 'react-icons/fa';
+import { useState, useEffect } from "react";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { FaBars, FaTimes } from "react-icons/fa";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,8 +12,8 @@ const Navbar = () => {
       setScrolled(window.scrollY > 50);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Close mobile menu when route changes
@@ -22,10 +22,10 @@ const Navbar = () => {
   }, [location]);
 
   const navLinks = [
-    { path: '/', label: 'Home' },
-    { path: '/alerts', label: 'Alerts' },
-    { path: '/submit-symptoms', label: 'Submit Symptoms' },
-    { path: '/request-aid', label: 'Request Aid' },
+    { path: "/", label: "Home" },
+    { path: "/alerts", label: "Alerts" },
+    { path: "/submit-symptoms", label: "Submit Symptoms" },
+    { path: "/request-aid", label: "Request Aid" },
   ];
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -132,4 +132,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar; 
+export default Navbar;

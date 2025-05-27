@@ -1,4 +1,13 @@
 import React, { useRef, useState } from "react";
+import gnDivisions from "../data/gnDivisions";
+
+const districts = [
+  "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Colombo", "Galle",
+  "Gampaha", "Hambantota", "Jaffna", "Kalutara", "Kandy", "Kegalle",
+  "Kilinochchi", "Kurunegala", "Mannar", "Matale", "Matara", "Monaragala",
+  "Mullaitivu", "Nuwara Eliya", "Polonnaruwa", "Puttalam", "Ratnapura",
+  "Trincomalee", "Vavuniya"
+];
 
 export default function SubmitSymptoms() {
   const formRef = useRef<HTMLFormElement>(null);
@@ -125,26 +134,32 @@ export default function SubmitSymptoms() {
             <div className="border-t border-gray-200" />
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
               <label className="block font-semibold text-base md:text-lg mb-1 md:w-44">District</label>
-              <input
-                type="text"
+              <select
                 required
-                placeholder="Enter your district"
                 value={district}
                 onChange={(e) => setDistrict(e.target.value)}
                 className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
-              />
+              >
+                <option value="" disabled>Select your district</option>
+                {districts.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
             </div>
             <div className="border-t border-gray-200" />
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
               <label className="block font-semibold text-base md:text-lg mb-1 md:w-44">GN Division</label>
-              <input
-                type="text"
+              <select
                 required
-                placeholder="Enter your GN division"
                 value={gnDivision}
                 onChange={(e) => setGnDivision(e.target.value)}
                 className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
-              />
+              >
+                <option value="" disabled>Select your GN Division</option>
+                {gnDivisions.map((gnd) => (
+                  <option key={gnd} value={gnd}>{gnd}</option>
+                ))}
+              </select>
             </div>
             <div className="border-t border-gray-200" />
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
