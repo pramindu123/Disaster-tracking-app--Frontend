@@ -1,14 +1,18 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import districtGnDivisions from "../data/districtGnDivisions";
 
 export default function Signup() {
   const [name, setName] = useState("");
-  const [district, setDistrict] = useState("");
-  const [gnDivision, setGnDivision] = useState("");
   const [contactNumber, setContactNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("");
+  const [selectedGnDivision, setSelectedGnDivision] = useState<string>("");
+
+  const districts = Object.keys(districtGnDivisions);
+  const gnDivisions = selectedDistrict ? districtGnDivisions[selectedDistrict] : [];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,28 +35,40 @@ export default function Signup() {
               className="w-full bg-gray-100 rounded-lg h-12 px-4 text-lg focus:outline-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
             />
           </div>
-          <div>
-            <label className="block text-lg font-medium mb-2">District</label>
-            <input
-              type="text"
+          <div className="mb-4">
+            <label className="block mb-1 font-semibold">District</label>
+            <select
+              className="w-full px-3 py-2 border rounded"
+              value={selectedDistrict}
+              onChange={e => {
+                setSelectedDistrict(e.target.value);
+                setSelectedGnDivision(""); // Reset GN Division when district changes
+              }}
               required
-              value={district}
-              onChange={e => setDistrict(e.target.value)}
-              placeholder="Enter your district"
-              className="w-full bg-gray-100 rounded-lg h-12 px-4 text-lg focus:outline-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
-            />
+            >
+              <option value="">Select District</option>
+              {districts.map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
           </div>
-          <div>
-            <label className="block text-lg font-medium mb-2">Grama Niladhari Division</label>
-            <input
-              type="text"
+
+          <div className="mb-4">
+            <label className="block mb-1 font-semibold">GN Division</label>
+            <select
+              className="w-full px-3 py-2 border rounded"
+              value={selectedGnDivision}
+              onChange={e => setSelectedGnDivision(e.target.value)}
               required
-              value={gnDivision}
-              onChange={e => setGnDivision(e.target.value)}
-              placeholder="Enter your GN Division"
-              className="w-full bg-gray-100 rounded-lg h-12 px-4 text-lg focus:outline-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
-            />
+              disabled={!selectedDistrict}
+            >
+              <option value="">Select GN Division</option>
+              {gnDivisions.map(gnd => (
+                <option key={gnd} value={gnd}>{gnd}</option>
+              ))}
+            </select>
           </div>
+
           <div>
             <label className="block text-lg font-medium mb-2">Contact Number</label>
             <input

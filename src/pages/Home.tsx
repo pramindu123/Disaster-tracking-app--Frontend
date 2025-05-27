@@ -1,15 +1,109 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import districtGnDivisions from "../data/districtGnDivisions";
 
+// Use real districts and GN Divisions from data file
 const aidRequests = [
-  { id: 1, recipientName: "Saman Perera", type: "Dry rations", district: "Kaluthara", gnDivision: "Division A", gnOfficer: "Mr.Ruwan Senanayake", contactNo: "0769561473" },
-  { id: 2, recipientName: "Nimal Silva", type: "Clothing", district: "Hattan", gnDivision: "Division B", gnOfficer: "Ms.Thharushi Raja", contactNo: "0729631474" },
-  { id: 3, recipientName: "Kumari Jayasuriya", type: "Medical Supplies", district: "Anuradhapura", gnDivision: "Division C", gnOfficer: "Mr.Duleetha Amar", contactNo: "0756412379" },
-  { id: 4, recipientName: "Ruwanthi Fernando", type: "Temporary Shelter", district: "Gampaha", gnDivision: "Division D", gnOfficer: "Ms.Malini Jayawe", contactNo: "0743697412" },
-  { id: 5, recipientName: "Priyantha Rathnayake", type: "Drinking Water", district: "Kandy", gnDivision: "Division E", gnOfficer: "Ms.Pradeepa Rup", contactNo: "0772336974" },
-  { id: 6, recipientName: "Harsha Ekanayake", type: "Baby Essentials", district: "Puttlam", gnDivision: "Division F", gnOfficer: "Mr.Nimal Perera", contactNo: "0764435794" },
+  {
+    id: 1,
+    recipientName: "Saman Perera",
+    type: "Dry rations",
+    district: "Colombo",
+    gnDivision: "Nugegoda",
+    gnOfficer: "Mr.Ruwan Senanayake",
+    gnContactNo: "0769561473"
+  },
+  {
+    id: 2,
+    recipientName: "Nimal Silva",
+    type: "Clothing",
+    district: "Gampaha",
+    gnDivision: "Ragama",
+    gnOfficer: "Ms.Thharushi Raja",
+    gnContactNo: "0729631474"
+  },
+  {
+    id: 3,
+    recipientName: "Kumari Jayasuriya",
+    type: "Medical Supplies",
+    district: "Kandy",
+    gnDivision: "Peradeniya",
+    gnOfficer: "Mr.Duleetha Amar",
+    gnContactNo: "0756412379"
+  },
+  {
+    id: 4,
+    recipientName: "Ruwanthi Fernando",
+    type: "Temporary Shelter",
+    district: "Matara",
+    gnDivision: "Weligama Town",
+    gnOfficer: "Ms.Malini Jayawe",
+    gnContactNo: "0743697412"
+  },
+  {
+    id: 5,
+    recipientName: "Priyantha Rathnayake",
+    type: "Drinking Water",
+    district: "Puttalam",
+    gnDivision: "Chilaw Town",
+    gnOfficer: "Ms.Pradeepa Rup",
+    gnContactNo: "0772336974"
+  },
+  {
+    id: 6,
+    recipientName: "Harsha Ekanayake",
+    type: "Baby Essentials",
+    district: "Badulla",
+    gnDivision: "Bandarawela",
+    gnOfficer: "Mr.Nimal Perera",
+    gnContactNo: "0764435794"
+  },
+  {
+    id: 7,
+    recipientName: "Sunil Jayawardena",
+    type: "Medical Supplies",
+    district: "Trincomalee",
+    gnDivision: "Kinniya",
+    gnOfficer: "Ms.Indu Pathirana",
+    gnContactNo: "0771234567"
+  },
+  {
+    id: 8,
+    recipientName: "Chathurika Fernando",
+    type: "Clothing",
+    district: "Jaffna",
+    gnDivision: "Nallur",
+    gnOfficer: "Mr.Suren Raj",
+    gnContactNo: "0712345678"
+  },
+  {
+    id: 9,
+    recipientName: "Ramesh Perera",
+    type: "Dry rations",
+    district: "Hambantota",
+    gnDivision: "Tangalle Town",
+    gnOfficer: "Ms.Sanduni Silva",
+    gnContactNo: "0759876543"
+  },
+  {
+    id: 10,
+    recipientName: "Dilani Weerasinghe",
+    type: "Temporary Shelter",
+    district: "Kalutara",
+    gnDivision: "Panadura North",
+    gnOfficer: "Mr.Kasun Jayasuriya",
+    gnContactNo: "0784561230"
+  }
 ];
 const rowsPerPage = 6;
+
+// For filters
+const aidTypes = Array.from(new Set(aidRequests.map(r => r.type)));
+const districts = Object.keys(districtGnDivisions);
+const gnDivisions = (selectedDistrict: string | null) =>
+  selectedDistrict
+    ? districtGnDivisions[selectedDistrict] || []
+    : Array.from(new Set(aidRequests.map(r => r.gnDivision)));
 
 function StatCard({ icon, value, label, color, inView }: { icon: string, value: number, label: string, color: string, inView: boolean }) {
   const [count, setCount] = useState(0);
@@ -48,7 +142,10 @@ function StatCard({ icon, value, label, color, inView }: { icon: string, value: 
 
 export default function Home() {
   const [page, setPage] = useState(1);
-  const paginatedRows = aidRequests.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
+  const [selectedGnDivision, setSelectedGnDivision] = useState<string | null>(null);
+
   const aboutRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
   const [statsInView, setStatsInView] = useState(false);
@@ -65,6 +162,30 @@ export default function Home() {
     if (statsRef.current) observer.observe(statsRef.current);
     return () => observer.disconnect();
   }, []);
+
+  // Filtering logic
+  const filteredAidRequests = aidRequests.filter(req => {
+    if (selectedType && req.type !== selectedType) return false;
+    if (selectedDistrict && req.district !== selectedDistrict) return false;
+    if (selectedGnDivision && req.gnDivision !== selectedGnDivision) return false;
+    return true;
+  });
+
+  const paginatedRows = filteredAidRequests.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
+  // Reset page if filtering causes out-of-range page
+  useEffect(() => {
+    if (page > Math.ceil(filteredAidRequests.length / rowsPerPage) && filteredAidRequests.length > 0) {
+      setPage(1);
+    }
+  }, [filteredAidRequests, page]);
+
+  const resetFilters = () => {
+    setSelectedType(null);
+    setSelectedDistrict(null);
+    setSelectedGnDivision(null);
+    setPage(1);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-20">
@@ -94,7 +215,7 @@ export default function Home() {
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur-lg opacity-30"></div>
                 <div className="relative bg-white p-2 rounded-2xl shadow-xl">
                   <img
-                    src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
+                    src="home.png"
                     alt="Disaster relief hero"
                     className="w-full h-72 object-cover rounded-2xl shadow-lg"
                   />
@@ -137,6 +258,145 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Countdown Section */}
+      <section>
+        {/* ...your countdown JSX here... */}
+      </section>
+
+      {/* Recent Aid Requests Section (modern table + filters) */}
+      <section className="w-full mt-12">
+        <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 max-w-full">
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-800">Recent Aid Requests</h2>
+          {/* Filters */}
+          <div className="mb-6 bg-blue-50 rounded-xl p-4 flex flex-wrap items-center gap-4">
+            <span className="font-semibold text-gray-700">Filter by:</span>
+            <select
+              className="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none"
+              value={selectedType || ""}
+              onChange={e => { setSelectedType(e.target.value || null); setPage(1); }}
+            >
+              <option value="">Request Type</option>
+              {aidTypes.map(type => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+            <select
+              className="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none"
+              value={selectedDistrict || ""}
+              onChange={e => { setSelectedDistrict(e.target.value || null); setPage(1); }}
+            >
+              <option value="">District</option>
+              {districts.map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+            <select
+              className="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none"
+              value={selectedGnDivision || ""}
+              onChange={e => { setSelectedGnDivision(e.target.value || null); setPage(1); }}
+            >
+              <option value="">GN Division</option>
+              {gnDivisions(selectedDistrict).map(gnd => (
+                <option key={gnd} value={gnd}>{gnd}</option>
+              ))}
+            </select>
+            <button
+              className="px-4 py-2 bg-gray-200 rounded-lg font-semibold hover:bg-gray-300 transition"
+              onClick={resetFilters}
+            >
+              Reset
+            </button>
+          </div>
+          <div className="w-full overflow-x-auto">
+            <table className="min-w-[900px] w-full divide-y divide-gray-200 rounded-xl overflow-hidden shadow">
+              <thead className="bg-gradient-to-r from-blue-600 to-purple-600">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">#</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Recipient Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Request Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">District</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">GN Division</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">GN Officer</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">GN Contact No</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {paginatedRows.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-8 text-center text-gray-400">
+                      No aid requests found for selected filters.
+                    </td>
+                  </tr>
+                )}
+                {paginatedRows.map((req, idx) => (
+                  <tr key={req.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">{(page - 1) * rowsPerPage + idx + 1}</td>
+                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-blue-700">{req.recipientName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{req.type}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{req.district}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{req.gnDivision}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{req.gnOfficer}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{req.gnContactNo}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {/* Pagination */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  disabled={page === 1}
+                  onClick={() => setPage(page - 1)}
+                >
+                  Previous
+                </button>
+                <button
+                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  disabled={page === Math.ceil(filteredAidRequests.length / rowsPerPage) || filteredAidRequests.length === 0}
+                  onClick={() => setPage(page + 1)}
+                >
+                  Next
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-center">
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button
+                    className="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                    disabled={page === 1}
+                    onClick={() => setPage(page - 1)}
+                  >
+                    Previous
+                  </button>
+                  {Array.from({ length: Math.max(1, Math.ceil(filteredAidRequests.length / rowsPerPage)) }, (_, i) => i + 1).map(num => (
+                    <button
+                      key={num}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                        page === num
+                          ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                      }`}
+                      onClick={() => setPage(num)}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                  <button
+                    className="relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                    disabled={page === Math.ceil(filteredAidRequests.length / rowsPerPage) || filteredAidRequests.length === 0}
+                    onClick={() => setPage(page + 1)}
+                  >
+                    Next
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section with Modern Cards */}
       <section className="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -151,17 +411,17 @@ export default function Home() {
               {
                 title: 'Real-time Alerts',
                 desc: 'Instant notifications about disasters and emergencies in your area',
-                img: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80',
+                img: 'realtimealerts.jpg',
               },
               {
                 title: 'Aid Coordination',
                 desc: 'Efficient distribution of resources and support to affected areas',
-                img: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=400&q=80',
+                img: 'aid.jpg',
               },
               {
                 title: 'Community Support',
                 desc: 'Connect with volunteers and resources in your local community',
-                img: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80',
+                img: 'volunteer.jpg',
               },
             ].map((feature, idx) => (
               <div 
@@ -185,135 +445,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Aid Requests Section with Modern Table */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Recent Aid Requests</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Track and manage aid requests from affected communities
-            </p>
-          </div>
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipient Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">District</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GN Division</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GN Officer</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact No</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {aidRequests.map((req, idx) => (
-                    <tr key={req.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">{idx + 1}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{req.recipientName}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{req.type}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{req.district}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{req.gnDivision}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{req.gnOfficer}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{req.contactNo}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex-1 flex justify-between sm:hidden">
-                  <button
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                    disabled={page === 1}
-                    onClick={() => setPage(page - 1)}
-                  >
-                    Previous
-                  </button>
-                  <button
-                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                    disabled={page === 4}
-                    onClick={() => setPage(page + 1)}
-                  >
-                    Next
-                  </button>
-                </div>
-                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-center">
-                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    <button
-                      className="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                      disabled={page === 1}
-                      onClick={() => setPage(page - 1)}
-                    >
-                      Previous
-                    </button>
-                    {[1, 2, 3, 4].map((num) => (
-                      <button
-                        key={num}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                          page === num
-                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                        }`}
-                        onClick={() => setPage(num)}
-                      >
-                        {num}
-                      </button>
-                    ))}
-                    <button
-                      className="relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                      disabled={page === 4}
-                      onClick={() => setPage(page + 1)}
-                    >
-                      Next
-                    </button>
-                  </nav>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer with Modern Design */}
-      <footer className="bg-white border-t">
-        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <h3 className="text-2xl font-extrabold tracking-wide bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 bg-clip-text text-transparent">HazardX</h3>
-              <p className="text-gray-600">Empowering communities through effective disaster management.</p>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Quick Links</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">About Us</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Services</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Resources</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Blog</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Documentation</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Support</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Legal</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Privacy Policy</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Terms of Service</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Cookie Policy</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-12 pt-8 border-t border-gray-200">
-            <p className="text-center text-gray-500">© 2025 HazardX Team. All rights reserved.</p>
-          </div>
+      {/* Simple Footer with All Rights Reserved */}
+      <footer className="bg-white border-t mt-8">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-gray-500">© 2025 HazardX Team. All rights reserved.</p>
         </div>
       </footer>
     </div>

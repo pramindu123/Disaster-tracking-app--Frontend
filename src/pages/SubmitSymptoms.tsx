@@ -1,13 +1,5 @@
 import React, { useRef, useState } from "react";
-import gnDivisions from "../data/gnDivisions";
-
-const districts = [
-  "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Colombo", "Galle",
-  "Gampaha", "Hambantota", "Jaffna", "Kalutara", "Kandy", "Kegalle",
-  "Kilinochchi", "Kurunegala", "Mannar", "Matale", "Matara", "Monaragala",
-  "Mullaitivu", "Nuwara Eliya", "Polonnaruwa", "Puttalam", "Ratnapura",
-  "Trincomalee", "Vavuniya"
-];
+import districtGnDivisions from "../data/districtGnDivisions";
 
 export default function SubmitSymptoms() {
   const formRef = useRef<HTMLFormElement>(null);
@@ -17,8 +9,8 @@ export default function SubmitSymptoms() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [fullName, setFullName] = useState("");
   const [contactNo, setContactNo] = useState("");
-  const [district, setDistrict] = useState("");
-  const [gnDivision, setGnDivision] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("");
+  const [selectedGnDivision, setSelectedGnDivision] = useState<string>("");
   const [dateTime, setDateTime] = useState("");
   const [symptoms, setSymptoms] = useState("");
 
@@ -28,8 +20,8 @@ export default function SubmitSymptoms() {
     setFileUrl("");
     setFullName("");
     setContactNo("");
-    setDistrict("");
-    setGnDivision("");
+    setSelectedDistrict("");
+    setSelectedGnDivision("");
     setDateTime("");
     setSymptoms("");
   };
@@ -57,8 +49,8 @@ export default function SubmitSymptoms() {
         const formData = {
             FullName: fullName,
             ContactNo: contactNo,
-            District: district,
-            GNDivision: gnDivision,
+            District: selectedDistrict,
+            GNDivision: selectedGnDivision,
             DateTime: new Date(dateTime).toISOString(),
             Symptoms: symptoms,
             ImageUrl: fileUrl || ""
@@ -102,6 +94,9 @@ export default function SubmitSymptoms() {
     }
   };
 
+  const districts = Object.keys(districtGnDivisions);
+  const gnDivisions = selectedDistrict ? districtGnDivisions[selectedDistrict] : [];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-20 px-4 md:px-12 font-sans flex items-center justify-center">
       <div className="w-full max-w-2xl mx-auto p-0 md:p-6">
@@ -136,12 +131,15 @@ export default function SubmitSymptoms() {
               <label className="block font-semibold text-base md:text-lg mb-1 md:w-44">District</label>
               <select
                 required
-                value={district}
-                onChange={(e) => setDistrict(e.target.value)}
+                value={selectedDistrict}
+                onChange={e => {
+                  setSelectedDistrict(e.target.value);
+                  setSelectedGnDivision(""); // Reset GN Division when district changes
+                }}
                 className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
               >
-                <option value="" disabled>Select your district</option>
-                {districts.map((d) => (
+                <option value="">Select District</option>
+                {districts.map(d => (
                   <option key={d} value={d}>{d}</option>
                 ))}
               </select>
@@ -151,12 +149,13 @@ export default function SubmitSymptoms() {
               <label className="block font-semibold text-base md:text-lg mb-1 md:w-44">GN Division</label>
               <select
                 required
-                value={gnDivision}
-                onChange={(e) => setGnDivision(e.target.value)}
+                value={selectedGnDivision}
+                onChange={e => setSelectedGnDivision(e.target.value)}
                 className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                disabled={!selectedDistrict}
               >
-                <option value="" disabled>Select your GN Division</option>
-                {gnDivisions.map((gnd) => (
+                <option value="">Select GN Division</option>
+                {gnDivisions.map(gnd => (
                   <option key={gnd} value={gnd}>{gnd}</option>
                 ))}
               </select>

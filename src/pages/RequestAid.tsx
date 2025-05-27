@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import districtGnDivisions from "../data/districtGnDivisions";
 
 const supportOptions = ["First aid", "Supply distribution", "Evacuation", "Other"];
 
@@ -7,11 +8,18 @@ export default function RequestAid() {
   const [typeOfSupport, setTypeOfSupport] = useState("");
   const [customSupport, setCustomSupport] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("");
+  const [selectedGnDivision, setSelectedGnDivision] = useState<string>("");
+
+  const districts = Object.keys(districtGnDivisions);
+  const gnDivisions = selectedDistrict ? districtGnDivisions[selectedDistrict] : [];
 
   const handleClear = () => {
     formRef.current?.reset();
     setTypeOfSupport("");
     setCustomSupport("");
+    setSelectedDistrict("");
+    setSelectedGnDivision("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -48,22 +56,40 @@ export default function RequestAid() {
             <div className="border-t border-gray-200" />
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
               <label className="block font-semibold text-base md:text-lg mb-1 md:w-44">District</label>
-              <input
-                type="text"
-                required
-                placeholder="Enter your district"
-                className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
-              />
+              <div className="w-full flex flex-col md:flex-row md:items-center md:ml-2">
+                <select
+                  required
+                  className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                  value={selectedDistrict}
+                  onChange={e => {
+                    setSelectedDistrict(e.target.value);
+                    setSelectedGnDivision(""); // Reset GN Division when district changes
+                  }}
+                >
+                  <option value="">Select District</option>
+                  {districts.map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="border-t border-gray-200" />
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
               <label className="block font-semibold text-base md:text-lg mb-1 md:w-44">GN Division</label>
-              <input
-                type="text"
-                required
-                placeholder="Enter your GN division"
-                className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
-              />
+              <div className="w-full flex flex-col md:flex-row md:items-center md:ml-2">
+                <select
+                  required
+                  className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                  value={selectedGnDivision}
+                  onChange={e => setSelectedGnDivision(e.target.value)}
+                  disabled={!selectedDistrict}
+                >
+                  <option value="">Select GN Division</option>
+                  {gnDivisions.map(gnd => (
+                    <option key={gnd} value={gnd}>{gnd}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="border-t border-gray-200" />
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
