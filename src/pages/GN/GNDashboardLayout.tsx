@@ -6,9 +6,9 @@ export default function GNDashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const gnOfficer = {
-    name: "Example Name",
+    name: "Nisal Ekanayaka",
     nic: "GN12345",
-    division: "Division A",
+    division: "Welegoda East",
     workerId: "GN-001",
   };
 
@@ -64,17 +64,19 @@ export default function GNDashboardLayout() {
           </button>
         </div>
         {/* Logo */}
-        <div className="text-4xl font-extrabold mb-8 text-left select-none">
+        <div className="text-5xl font-extrabold mb-8 text-left select-none">
           <span className="bg-gradient-to-r from-blue-600 to-purple-500 bg-clip-text text-transparent">Hazard</span>
           <span className="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">X</span>
         </div>
         {/* Profile */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full mb-4 border-4 border-white shadow" />
-          <div className="text-base font-semibold mb-1">Role: <span className="text-purple-600">GN Officer</span></div>
-          <div className="text-sm mb-1">User ID: {gnOfficer.nic}</div>
-          <div className="text-sm mb-1">Name: {gnOfficer.name}</div>
-          <div className="text-sm mb-1">Division: {gnOfficer.division}</div>
+          <div className="w-28 h-28 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full mb-4 border-4 border-white shadow" />
+          <div className="text-base font-semibold mb-1">
+            Role: <span className="text-purple-600">GN Officer</span>
+          </div>
+          <div className="text-sm mb-1 text-gray-500">User ID: {gnOfficer.nic}</div>
+          <div className="text-sm mb-1 text-gray-700">Name: {gnOfficer.name}</div>
+          <div className="text-sm mb-1 text-gray-700">Division: {gnOfficer.division}</div>
         </div>
         <hr className="border-gray-200 mb-4" />
         <nav className="flex flex-col gap-3 items-start mt-4 w-full">
@@ -92,18 +94,73 @@ export default function GNDashboardLayout() {
           </NavLink>
           <NavLink
             to="/gn-dashboard/review-reports"
-            className="bg-white py-2 px-6 rounded-full text-left w-full hover:bg-blue-100"
+            className={({ isActive }) =>
+              (isActive
+                ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                : "bg-white text-gray-900 hover:bg-blue-100") +
+              " rounded-full py-2 px-6 font-semibold shadow transition text-left w-full"
+            }
           >
             Review Reports
           </NavLink>
-          <NavLink to="/gn-dashboard/submit-manual-reports" className="bg-white py-2 px-6 rounded-full text-left w-full hover:bg-blue-100">Submit Manual Reports</NavLink>
-          <NavLink to="/gn-dashboard/resolved-alerts" className="bg-white py-2 px-6 rounded-full text-left w-full hover:bg-blue-100">Resolved Alerts</NavLink>
-          <NavLink to="/gn-dashboard/approve-aid-requests" className="bg-white py-2 px-6 rounded-full text-left w-full hover:bg-blue-100">Approve Aid Requests</NavLink>
-          <NavLink to="/gn-dashboard/volunteers" className="bg-white py-2 px-6 rounded-full text-left w-full hover:bg-blue-100">Volunteers</NavLink>
+          <NavLink
+            to="/gn-dashboard/submit-manual-reports"
+            className={({ isActive }) =>
+              (isActive
+                ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                : "bg-white text-gray-900 hover:bg-blue-100") +
+              " rounded-full py-2 px-6 font-semibold shadow transition text-left w-full"
+            }
+          >
+            Submit Manual Reports
+          </NavLink>
+          <NavLink
+            to="/gn-dashboard/resolved-alerts"
+            className={({ isActive }) =>
+              (isActive
+                ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                : "bg-white text-gray-900 hover:bg-blue-100") +
+              " rounded-full py-2 px-6 font-semibold shadow transition text-left w-full"
+            }
+          >
+            Resolved Alerts
+          </NavLink>
+          <NavLink
+            to="/gn-dashboard/approve-aid-requests"
+            className={({ isActive }) =>
+              (isActive
+                ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                : "bg-white text-gray-900 hover:bg-blue-100") +
+              " rounded-full py-2 px-6 font-semibold shadow transition text-left w-full"
+            }
+          >
+            Approve Aid Requests
+          </NavLink>
+          <NavLink
+            to="/gn-dashboard/volunteers"
+            className={({ isActive }) =>
+              (isActive
+                ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                : "bg-white text-gray-900 hover:bg-blue-100") +
+              " rounded-full py-2 px-6 font-semibold shadow transition text-left w-full"
+            }
+          >
+            Volunteers
+          </NavLink>
         </nav>
         <hr className="border-gray-200 my-4" />
         <nav className="flex flex-col gap-2 items-start w-full">
-          <NavLink to="/gn-dashboard/settings" className="bg-white py-2 px-6 rounded-full text-left w-full hover:bg-blue-100">System Settings</NavLink>
+          <NavLink
+            to="/gn-dashboard/settings"
+            className={({ isActive }) =>
+              (isActive
+                ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                : "bg-white text-gray-900 hover:bg-blue-100") +
+              " rounded-full py-2 px-6 font-semibold shadow transition text-left w-full"
+            }
+          >
+            System Settings
+          </NavLink>
           <button
             className="text-left py-2 px-6 bg-white hover:bg-blue-100 rounded-full transition w-full font-semibold mt-2"
             onClick={handleLogout}

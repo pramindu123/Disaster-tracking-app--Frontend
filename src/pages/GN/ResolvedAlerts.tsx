@@ -22,25 +22,27 @@ export default function ResolvedAlerts() {
   );
 
   return (
-    <div className="w-full max-w-3xl mx-auto bg-gray-100 rounded-2xl shadow p-8 mt-8">
-      <h2 className="text-2xl font-bold text-center mb-6">Resolved Alerts</h2>
+    <div className="w-full max-w-3xl mx-auto bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl shadow p-8 mt-8">
+      <h2 className="text-2xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+        Resolved Alerts
+      </h2>
       <div className="flex items-center gap-2 mb-4">
-        <label className="font-semibold">GN Division :</label>
+        <label className="font-semibold text-blue-700">GN Division :</label>
         <input
           type="text"
           placeholder="Enter Your GN Division"
-          className="rounded px-3 py-2 border border-gray-300 flex-1"
+          className="rounded px-3 py-2 border border-blue-300 flex-1 focus:ring-2 focus:ring-blue-200"
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
-        <button className="bg-gray-300 hover:bg-gray-400 rounded px-4 py-2 font-semibold">
+        <button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded px-4 py-2 font-semibold shadow hover:scale-105 transition-all">
           Search
         </button>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white rounded-lg">
+        <table className="min-w-full bg-white rounded-lg shadow border border-gray-200">
           <thead>
-            <tr className="bg-gray-200 text-gray-700">
+            <tr className="bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700">
               <th className="py-2 px-4 text-left">Alert ID</th>
               <th className="py-2 px-4 text-left">Alert Type</th>
               <th className="py-2 px-4 text-left">Severity</th>
@@ -50,7 +52,7 @@ export default function ResolvedAlerts() {
           </thead>
           <tbody>
             {filteredAlerts.map((alert, idx) => (
-              <tr key={alert.id} className="border-b last:border-b-0">
+              <tr key={alert.id} className="border-b last:border-b-0 hover:bg-blue-50 transition">
                 <td className="py-2 px-4">{alert.id}</td>
                 <td className="py-2 px-4">{alert.type}</td>
                 <td className="py-2 px-4">{alert.severity}</td>

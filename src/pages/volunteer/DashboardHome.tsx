@@ -4,7 +4,7 @@ export default function DashboardHome() {
   return (
     <div className="w-full flex flex-col items-center">
       <h1 className="font-extrabold text-xl sm:text-3xl md:text-5xl lg:text-6xl mb-10 text-center md:text-center">
-        Greetings <span className="text-blue-700">Example Name</span> !!
+        Greetings <span className="text-blue-700">Kasun Srimal</span> !!
       </h1>
       <div className="w-full max-w-5xl flex flex-col items-center">
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">

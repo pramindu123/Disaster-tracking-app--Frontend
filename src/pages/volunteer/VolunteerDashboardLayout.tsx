@@ -9,7 +9,7 @@ export default function VolunteerDashboardLayout() {
   const volunteer = {
     role: "Volunteer",
     userId: "V12345",
-    name: "Example Name",
+    name: "Kasun Srimal",
     division: "Division A",
   };
 
