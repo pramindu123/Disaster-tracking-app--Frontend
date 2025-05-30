@@ -33,7 +33,7 @@ export default function Alerts() {
       district: "Kandy",
       gnDivision: "Peradeniya",
       severity: "Medium",
-      status: "Resolved",
+      status: "Ongoing", // changed to Ongoing
       date: "2025-05-27",
       time: "14:30",
     },
@@ -63,7 +63,7 @@ export default function Alerts() {
       district: "Matara",
       gnDivision: "Weligama Town",
       severity: "Medium",
-      status: "Resolved",
+      status: "Ongoing", // changed to Ongoing
       date: "2025-05-24",
       time: "16:45",
     },
@@ -93,7 +93,7 @@ export default function Alerts() {
       district: "Trincomalee",
       gnDivision: "Kinniya",
       severity: "High",
-      status: "Resolved",
+      status: "Ongoing", // changed to Ongoing
       date: "2025-05-21",
       time: "13:10",
     },
@@ -113,7 +113,7 @@ export default function Alerts() {
       district: "Hambantota",
       gnDivision: "Tangalle Town",
       severity: "Medium",
-      status: "Resolved",
+      status: "Ongoing", // changed to Ongoing
       date: "2025-05-19",
       time: "17:30",
     },
@@ -133,7 +133,7 @@ export default function Alerts() {
       district: "Kegalle",
       gnDivision: "Mawanella",
       severity: "Low",
-      status: "Resolved",
+      status: "Ongoing", // changed to Ongoing
       date: "2025-05-17",
       time: "09:00",
     },
