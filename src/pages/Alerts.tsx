@@ -1,145 +1,46 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import districtGnDivisions from "../data/districtGnDivisions";
 
 const disasterTypes = ["Flood", "Landslide", "Cyclone", "Drought", "Fire"];
 const severityTypes = ["High", "Medium", "Low"];
 const statusTypes = ["Ongoing", "Resolved"];
 
+type Alert = {
+  id: number;
+  type: string;
+  district: string;
+  gnDivision: string;
+  severity: string;
+  status: string;
+  date: string;
+  time: string;
+};
+
 export default function Alerts() {
+  const [disasters, setDisasters] = useState<Alert[]>([]);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [selectedGnDivision, setSelectedGnDivision] = useState<string | null>(null);
   const [selectedSeverity, setSelectedSeverity] = useState<string | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>("Ongoing"); // default
 
   const districts = Object.keys(districtGnDivisions);
   const gnDivisions = selectedDistrict ? districtGnDivisions[selectedDistrict] : [];
 
-  // At least 10 sample disasters
-  const disasters = [
-    {
-      id: 1,
-      type: "Flood",
-      district: "Colombo",
-      gnDivision: "Nugegoda",
-      severity: "High",
-      status: "Ongoing",
-      date: "2025-05-28",
-      time: "10:00",
-    },
-    {
-      id: 2,
-      type: "Landslide",
-      district: "Kandy",
-      gnDivision: "Peradeniya",
-      severity: "Medium",
-      status: "Ongoing", // changed to Ongoing
-      date: "2025-05-27",
-      time: "14:30",
-    },
-    {
-      id: 3,
-      type: "Cyclone",
-      district: "Gampaha",
-      gnDivision: "Ragama",
-      severity: "High",
-      status: "Ongoing",
-      date: "2025-05-26",
-      time: "09:15",
-    },
-    {
-      id: 4,
-      type: "Drought",
-      district: "Kurunegala",
-      gnDivision: "Kurunegala Town",
-      severity: "Low",
-      status: "Ongoing",
-      date: "2025-05-25",
-      time: "12:00",
-    },
-    {
-      id: 5,
-      type: "Fire",
-      district: "Matara",
-      gnDivision: "Weligama Town",
-      severity: "Medium",
-      status: "Ongoing", // changed to Ongoing
-      date: "2025-05-24",
-      time: "16:45",
-    },
-    {
-      id: 6,
-      type: "Flood",
-      district: "Puttalam",
-      gnDivision: "Chilaw Town",
-      severity: "High",
-      status: "Ongoing",
-      date: "2025-05-23",
-      time: "08:30",
-    },
-    {
-      id: 7,
-      type: "Landslide",
-      district: "Badulla",
-      gnDivision: "Bandarawela",
-      severity: "Medium",
-      status: "Ongoing",
-      date: "2025-05-22",
-      time: "11:20",
-    },
-    {
-      id: 8,
-      type: "Cyclone",
-      district: "Trincomalee",
-      gnDivision: "Kinniya",
-      severity: "High",
-      status: "Ongoing", // changed to Ongoing
-      date: "2025-05-21",
-      time: "13:10",
-    },
-    {
-      id: 9,
-      type: "Fire",
-      district: "Jaffna",
-      gnDivision: "Nallur",
-      severity: "Low",
-      status: "Ongoing",
-      date: "2025-05-20",
-      time: "15:00",
-    },
-    {
-      id: 10,
-      type: "Drought",
-      district: "Hambantota",
-      gnDivision: "Tangalle Town",
-      severity: "Medium",
-      status: "Ongoing", // changed to Ongoing
-      date: "2025-05-19",
-      time: "17:30",
-    },
-    {
-      id: 11,
-      type: "Flood",
-      district: "Kalutara",
-      gnDivision: "Panadura North",
-      severity: "High",
-      status: "Ongoing",
-      date: "2025-05-18",
-      time: "10:30",
-    },
-    {
-      id: 12,
-      type: "Landslide",
-      district: "Kegalle",
-      gnDivision: "Mawanella",
-      severity: "Low",
-      status: "Ongoing", // changed to Ongoing
-      date: "2025-05-17",
-      time: "09:00",
-    },
-  ];
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        const response = await fetch("http://localhost:5158/Alerts/all");
+        const data = await response.json();
+        setDisasters(data);
+      } catch (error) {
+        console.error("Failed to fetch alerts:", error);
+      }
+    };
 
-  // Filtering logic
+    fetchAlerts();
+  }, []);
+
   const filteredDisasters = disasters.filter(d =>
     (!selectedType || d.type === selectedType) &&
     (!selectedDistrict || d.district === selectedDistrict) &&
@@ -164,6 +65,7 @@ export default function Alerts() {
               <option key={type} value={type}>{type}</option>
             ))}
           </select>
+
           <select
             className="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none"
             value={selectedDistrict || ""}
@@ -177,6 +79,7 @@ export default function Alerts() {
               <option key={d} value={d}>{d}</option>
             ))}
           </select>
+
           <select
             className="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none"
             value={selectedGnDivision || ""}
@@ -188,6 +91,7 @@ export default function Alerts() {
               <option key={gnd} value={gnd}>{gnd}</option>
             ))}
           </select>
+
           <select
             className="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none"
             value={selectedSeverity || ""}
@@ -198,6 +102,7 @@ export default function Alerts() {
               <option key={sev} value={sev}>{sev}</option>
             ))}
           </select>
+
           <select
             className="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none"
             value={selectedStatus || ""}
@@ -209,6 +114,7 @@ export default function Alerts() {
             ))}
           </select>
         </div>
+
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 rounded-xl overflow-hidden shadow">

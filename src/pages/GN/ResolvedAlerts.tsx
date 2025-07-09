@@ -1,73 +1,114 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
-const dummyAlerts = [
-  { id: "0001", type: "Flood", severity: "High", date: "2025-01-01", resolved: false },
-  { id: "0002", type: "Landslide", severity: "Medium", date: "2025-01-01", resolved: false },
-];
+type Alert = {
+  alert_id: number;
+  alert_type: string;
+  severity: string;
+  date_time: string;
+  resolved?: boolean; // frontend-only state
+};
 
-export default function ResolvedAlerts() {
-  const [alerts, setAlerts] = useState(dummyAlerts);
-  const [search, setSearch] = useState("");
+export default function OngoingAlerts() {
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [gnDivision, setGnDivision] = useState("");
 
-  const handleResolvedChange = (idx: number) => {
-    setAlerts(alerts =>
-      alerts.map((alert, i) =>
-        i === idx ? { ...alert, resolved: !alert.resolved } : alert
-      )
-    );
+  useEffect(() => {
+    const storedData = localStorage.getItem("gnOfficerData");
+    if (!storedData) {
+      alert("Login data not found. Please login again.");
+      return;
+    }
+
+    const parsed = JSON.parse(storedData);
+    const division = parsed.gnDivision;
+
+    if (!division) {
+      alert("GN Division not found in stored data.");
+      return;
+    }
+
+    setGnDivision(division);
+    fetchOngoingAlertsByDivision(division);
+  }, []);
+
+  const fetchOngoingAlertsByDivision = async (division: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`http://localhost:5158/Alerts/toResolve/${division}`);
+      if (!res.ok) throw new Error("Failed to fetch alerts");
+      const data = await res.json();
+      const enhancedData = data.map((a: Alert) => ({ ...a, resolved: false }));
+      setAlerts(enhancedData);
+    } catch (err) {
+      console.error("Error fetching alerts", err);
+      alert("Failed to fetch ongoing alerts.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const filteredAlerts = alerts.filter(alert =>
-    alert.type.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleResolvedChange = async (idx: number, alertId: number) => {
+    try {
+      const res = await fetch(`http://localhost:5158/Alerts/resolve/${alertId}`, {
+        method: "PUT",
+      });
+
+      if (!res.ok) throw new Error("Failed to update alert");
+
+      // Remove the resolved alert from UI
+      setAlerts(prev => prev.filter((_, i) => i !== idx));
+    } catch (err) {
+      console.error("Error resolving alert", err);
+      alert("Failed to mark alert as resolved.");
+    }
+  };
 
   return (
-    <div className="w-full max-w-3xl mx-auto bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl shadow p-8 mt-8">
-      <h2 className="text-2xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-        Resolved Alerts
+    <div className="w-full max-w-4xl mx-auto bg-gray-100 rounded-2xl shadow p-8 mt-8">
+      <h2 className="text-2xl font-bold text-center mb-6">
+        Ongoing Alerts for {gnDivision}
       </h2>
-      <div className="flex items-center gap-2 mb-4">
-        <label className="font-semibold text-blue-700">GN Division :</label>
-        <input
-          type="text"
-          placeholder="Enter Your GN Division"
-          className="rounded px-3 py-2 border border-blue-300 flex-1 focus:ring-2 focus:ring-blue-200"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
-        <button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded px-4 py-2 font-semibold shadow hover:scale-105 transition-all">
-          Search
-        </button>
-      </div>
+
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white rounded-lg shadow border border-gray-200">
-          <thead>
-            <tr className="bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700">
-              <th className="py-2 px-4 text-left">Alert ID</th>
-              <th className="py-2 px-4 text-left">Alert Type</th>
-              <th className="py-2 px-4 text-left">Severity</th>
-              <th className="py-2 px-4 text-left">Date</th>
-              <th className="py-2 px-4 text-left">Mark As resolved</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredAlerts.map((alert, idx) => (
-              <tr key={alert.id} className="border-b last:border-b-0 hover:bg-blue-50 transition">
-                <td className="py-2 px-4">{alert.id}</td>
-                <td className="py-2 px-4">{alert.type}</td>
-                <td className="py-2 px-4">{alert.severity}</td>
-                <td className="py-2 px-4">{alert.date}</td>
-                <td className="py-2 px-4">
-                  <input
-                    type="checkbox"
-                    checked={alert.resolved}
-                    onChange={() => handleResolvedChange(idx)}
-                  />
-                </td>
+        {loading ? (
+          <p className="text-center py-4">Loading alerts...</p>
+        ) : alerts.length === 0 ? (
+          <p className="text-center py-4 text-red-600">
+            No ongoing alerts found for this GN division.
+          </p>
+        ) : (
+          <table className="min-w-full bg-white rounded-lg">
+            <thead>
+              <tr className="bg-gray-200 text-gray-700">
+                <th className="py-2 px-4 text-left">Alert ID</th>
+                <th className="py-2 px-4 text-left">Alert Type</th>
+                <th className="py-2 px-4 text-left">Severity</th>
+                <th className="py-2 px-4 text-left">Date</th>
+                <th className="py-2 px-4 text-left">Mark as Resolved</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {alerts.map((alert, idx) => (
+                <tr key={alert.alert_id} className="border-b last:border-b-0">
+                  <td className="py-2 px-4">{alert.alert_id}</td>
+                  <td className="py-2 px-4">{alert.alert_type}</td>
+                  <td className="py-2 px-4">{alert.severity}</td>
+                  <td className="py-2 px-4">
+                    {new Date(alert.date_time).toLocaleDateString()}
+                  </td>
+                  <td className="py-2 px-4">
+                    <input
+                      type="checkbox"
+                      checked={alert.resolved}
+                      onChange={() => handleResolvedChange(idx, alert.alert_id)}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

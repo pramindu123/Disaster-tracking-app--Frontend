@@ -1,30 +1,55 @@
 import React, { useState } from "react";
-import districtGnDivisions from "../../data/districtGnDivisions";
 
 export default function AddContribution() {
   const [district, setDistrict] = useState("");
-  const [gnDivision, setGnDivision] = useState("");
   const [type, setType] = useState("");
   const [otherType, setOtherType] = useState("");
   const [description, setDescription] = useState("");
 
-  // Get districts from data file
-  const districts = Object.keys(districtGnDivisions);
-  // Get GN Divisions for selected district
-  const gnDivisions = district ? districtGnDivisions[district] || [] : [];
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert(
-      `District: ${district}\nGN Division: ${gnDivision}\nType: ${
-        type === "Other" ? otherType : type
-      }\nDescription: ${description}`
-    );
-    setDistrict("");
-    setGnDivision("");
-    setType("");
-    setOtherType("");
-    setDescription("");
+
+    const volunteerData = JSON.parse(localStorage.getItem("volunteerData") || "null");
+
+if (!volunteerData || !volunteerData.userId) {
+  alert("You must be logged in as a volunteer to submit a contribution.");
+  return;
+}
+
+const volunteerId = volunteerData.userId;
+
+
+    const payload = {
+      volunteer_id: parseInt(volunteerId),
+      district: district,
+      type_support: type === "Other" ? otherType : type,
+      description: description,
+    };
+
+    try {
+      const response = await fetch("https://localhost:7096/Contribution/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        alert("Contribution submitted successfully!");
+        setDistrict("");
+        setType("");
+        setOtherType("");
+        setDescription("");
+      } else {
+        const errorText = await response.text();
+        console.error("Server error:", errorText);
+        alert("Failed to submit contribution. Please try again.");
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      alert("An error occurred while submitting the contribution.");
+    }
   };
 
   return (
@@ -37,57 +62,26 @@ export default function AddContribution() {
         onSubmit={handleSubmit}
       >
         <div className="flex flex-col md:flex-row md:items-center gap-4">
-          <label className="md:w-1/3 text-2xl font-medium text-gray-900">
-            District :
-          </label>
-          <select
+          <label className="md:w-1/3 text-2xl font-medium text-gray-900">District :</label>
+          <input
+            type="text"
             value={district}
-            onChange={(e) => {
-              setDistrict(e.target.value);
-              setGnDivision(""); // Reset GN Division when district changes
-            }}
+            onChange={e => setDistrict(e.target.value)}
             required
             className="flex-1 rounded-lg bg-gray-100 px-4 py-2 text-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
-          >
-            <option value="">Select</option>
-            {districts.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
+          />
         </div>
+
         <div className="flex flex-col md:flex-row md:items-center gap-4">
-          <label className="md:w-1/3 text-2xl font-medium text-gray-900">
-            GN Division :
-          </label>
-          <select
-            value={gnDivision}
-            onChange={(e) => setGnDivision(e.target.value)}
-            required
-            disabled={!district}
-            className="flex-1 rounded-lg bg-gray-100 px-4 py-2 text-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
-          >
-            <option value="">Select</option>
-            {gnDivisions.map((g) => (
-              <option key={g} value={g}>
-                {g}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex flex-col md:flex-row md:items-center gap-4">
-          <label className="md:w-1/3 text-2xl font-medium text-gray-900">
-            Type of Support :
-          </label>
+          <label className="md:w-1/3 text-2xl font-medium text-gray-900">Type of Support :</label>
           <div className="flex-1 flex flex-col gap-2">
             <select
               value={type}
-              onChange={(e) => setType(e.target.value)}
+              onChange={e => setType(e.target.value)}
               required
               className="rounded-lg bg-gray-100 px-4 py-2 text-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
             >
-              <option value="">select</option>
+              <option value="">Select</option>
               <option value="Evacuation">Evacuation</option>
               <option value="First Aid">First Aid</option>
               <option value="Supply Distribution">Supply Distribution</option>
@@ -98,24 +92,24 @@ export default function AddContribution() {
                 type="text"
                 placeholder="Please specify"
                 value={otherType}
-                onChange={(e) => setOtherType(e.target.value)}
+                onChange={e => setOtherType(e.target.value)}
                 required
                 className="rounded-lg bg-gray-100 px-4 py-2 text-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
             )}
           </div>
         </div>
+
         <div className="flex flex-col md:flex-row md:items-center gap-4">
-          <label className="md:w-1/3 text-2xl font-medium text-gray-900">
-            Description :
-          </label>
+          <label className="md:w-1/3 text-2xl font-medium text-gray-900">Description :</label>
           <textarea
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={e => setDescription(e.target.value)}
             required
             className="flex-1 rounded-lg bg-gray-100 px-4 py-2 text-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200 min-h-[80px]"
           />
         </div>
+
         <div className="flex justify-end">
           <button
             type="submit"

@@ -1,132 +1,86 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
-const volunteers = [
-  {
-    name: "Nimal Perera",
-    contact: "0771234567",
-    district: "Colombo",
-    gnDivision: "Nugegoda",
-    skills: "First Aid, Rescue",
-    status: "Active",
-  },
-  {
-    name: "Kumari Jayasuriya",
-    contact: "0779876543",
-    district: "Kandy",
-    gnDivision: "Peradeniya",
-    skills: "Logistics, Cooking",
-    status: "Inactive",
-  },
-  {
-    name: "Sunil Fernando",
-    contact: "0712345678",
-    district: "Gampaha",
-    gnDivision: "Ragama",
-    skills: "Medical, Driving",
-    status: "Active",
-  },
-];
+interface Volunteer {
+  userId: number;
+  name: string;
+  gn_division: string;
+  district: string;
+  email: string;
+  availability: string; // "Available" | "Unavailable"
+}
 
 export default function DMCVolunteers() {
-  const [selected, setSelected] = useState<null | typeof volunteers[0]>(null);
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const dmcData = JSON.parse(localStorage.getItem("dmcOfficerData") || "{}");
+    const district = dmcData?.district;
+
+    if (!district) {
+      console.warn("District not found in localStorage");
+      setLoading(false);
+      return;
+    }
+
+    fetch(`http://localhost:5158/Volunteer/by-district?district=${district}`)
+      .then((res) => res.json())
+      .then((data) => {
+        // Normalize availability value to string for display
+        const volunteersWithAvailability = data.map((vol: any) => ({
+          ...vol,
+          availability:
+            vol.availability === "Available" || vol.availability === 1
+              ? "Available"
+              : "Unavailable",
+        }));
+        setVolunteers(volunteersWithAvailability);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch volunteers:", err);
+        setLoading(false);
+      });
+  }, []);
 
   return (
-    <div className="w-full max-w-4xl mx-auto bg-gradient-to-br from-blue-50 via-white to-purple-100 rounded-2xl shadow p-8 mt-8">
-      <h2 className="text-2xl font-extrabold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-        Volunteers
-      </h2>
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white rounded-lg border">
-          <thead>
-            <tr className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-              <th className="py-2 px-4 border">Name</th>
-              <th className="py-2 px-4 border">Contact</th>
-              <th className="py-2 px-4 border">District</th>
-              <th className="py-2 px-4 border">GN Division</th>
-              <th className="py-2 px-4 border">Skills</th>
-              <th className="py-2 px-4 border">Status</th>
-              <th className="py-2 px-4 border">Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {volunteers.map((v, idx) => (
-              <tr key={idx} className="border-b last:border-b-0">
-                <td className="py-2 px-4 border font-semibold text-blue-700">
-                  {v.name}
-                </td>
-                <td className="py-2 px-4 border">{v.contact}</td>
-                <td className="py-2 px-4 border">{v.district}</td>
-                <td className="py-2 px-4 border">{v.gnDivision}</td>
-                <td className="py-2 px-4 border">{v.skills}</td>
-                <td
-                  className={`py-2 px-4 border font-bold ${
-                    v.status === "Active"
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {v.status}
-                </td>
-                <td className="py-2 px-4 border">
-                  <button
-                    className="underline text-blue-600"
-                    onClick={() => setSelected(v)}
-                  >
-                    View
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="w-full max-w-4xl mx-auto bg-gray-100 rounded-2xl shadow p-8 mt-8">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Volunteers in Your District</h2>
+        <button className="bg-gray-200 rounded-full px-4 py-1 flex items-center gap-2">
+          <span className="material-icons text-base">filter_list</span>
+          Filter
+        </button>
       </div>
 
-      {/* Modal for Volunteer Details */}
-      {selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-          <div className="bg-gradient-to-br from-blue-50 via-white to-purple-100 rounded-2xl shadow-xl p-8 max-w-md w-full relative overflow-y-auto max-h-[90vh]">
-            <div className="bg-white border border-blue-300 rounded-xl p-6 shadow flex flex-col gap-2">
-              <div className="font-bold text-blue-700 text-lg mb-2">
-                {selected.name}
-              </div>
-              <div>
-                <span className="font-semibold text-blue-700">Contact:</span>{" "}
-                {selected.contact}
-              </div>
-              <div>
-                <span className="font-semibold text-blue-700">District:</span>{" "}
-                {selected.district}
-              </div>
-              <div>
-                <span className="font-semibold text-blue-700">GN Division:</span>{" "}
-                {selected.gnDivision}
-              </div>
-              <div>
-                <span className="font-semibold text-blue-700">Skills:</span>{" "}
-                {selected.skills}
-              </div>
-              <div>
-                <span className="font-semibold text-blue-700">Status:</span>{" "}
-                <span
-                  className={
-                    selected.status === "Active"
-                      ? "text-green-600 font-bold"
-                      : "text-red-600 font-bold"
-                  }
-                >
-                  {selected.status}
-                </span>
-              </div>
-              <div className="flex gap-4 mt-4 justify-end">
-                <button
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full px-6 py-2 font-semibold"
-                  onClick={() => setSelected(null)}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
+      {loading ? (
+        <p className="text-center text-gray-600">Loading volunteers...</p>
+      ) : volunteers.length === 0 ? (
+        <p className="text-center text-gray-600">No volunteers found in your district.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white rounded-lg border">
+            <thead>
+              <tr className="bg-gray-200 text-gray-700">
+                <th className="py-2 px-4 border">Name</th>
+                <th className="py-2 px-4 border">GN Division</th>
+                <th className="py-2 px-4 border">District</th>
+                <th className="py-2 px-4 border">Email</th>
+                <th className="py-2 px-4 border">Availability</th>
+              </tr>
+            </thead>
+            <tbody>
+              {volunteers.map((vol) => (
+                <tr key={vol.userId} className="border-b last:border-b-0">
+                  <td className="py-2 px-4 border">{vol.name}</td>
+                  <td className="py-2 px-4 border">{vol.gn_division}</td>
+                  <td className="py-2 px-4 border">{vol.district}</td>
+                  <td className="py-2 px-4 border">{vol.email || "N/A"}</td>
+                  <td className="py-2 px-4 border">{vol.availability}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

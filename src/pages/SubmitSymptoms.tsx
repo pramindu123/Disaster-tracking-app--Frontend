@@ -4,15 +4,54 @@ import districtGnDivisions from "../data/districtGnDivisions";
 export default function SubmitSymptoms() {
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [fileName, setFileName] = useState<string>("");
-  const [fileUrl, setFileUrl] = useState<string>("");
+  const [image, setFileUrl] = useState<string>("");
   const [showSuccess, setShowSuccess] = useState(false);
-  const [fullName, setFullName] = useState("");
-  const [contactNo, setContactNo] = useState("");
-  const [selectedDistrict, setSelectedDistrict] = useState<string>("");
-  const [selectedGnDivision, setSelectedGnDivision] = useState<string>("");
-  const [dateTime, setDateTime] = useState("");
-  const [symptoms, setSymptoms] = useState("");
+  const [reporter_name, setFullName] = useState("");
+  const [contact_no, setContactNo] = useState("");
+  const [district, setSelectedDistrict] = useState<string>("");
+  const [gn_division, setSelectedGnDivision] = useState<string>("");
+  const [date_time, setDateTime] = useState("");
+  const [description, setSymptoms] = useState("");
+
+  const [errors, setErrors] = useState({
+    reporter_name: "",
+    contact_no: "",
+    description: ""
+  });
+
+  const validatePhoneNumber = (phone: string) => {
+    const regex = /^\d{10}$/;
+    if (!regex.test(phone)) {
+      return "Phone number must be exactly 10 digits";
+    }
+    return "";
+  };
+
+  const validateForm = () => {
+    const newErrors: any = {};
+
+    if (!reporter_name.trim()) {
+      newErrors.reporter_name = "Full name is required";
+    } else if (!/^[A-Za-z\s]+$/.test(reporter_name.trim())) {
+      newErrors.reporter_name = "Name can only contain letters and spaces";
+    }
+
+    const phoneError = validatePhoneNumber(contact_no);
+    if (phoneError) {
+      newErrors.contact_no = phoneError;
+    }
+
+    if (!description.trim()) {
+      newErrors.description = "Symptoms description is required";
+    } else if (description.trim().length < 10) {
+      newErrors.description = "Symptoms should be at least 10 characters long";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleClear = () => {
     formRef.current?.reset();
@@ -24,6 +63,7 @@ export default function SubmitSymptoms() {
     setSelectedGnDivision("");
     setDateTime("");
     setSymptoms("");
+    setErrors({ reporter_name: "", contact_no: "", description: "" });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,58 +84,50 @@ export default function SubmitSymptoms() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    if (!validateForm()) return;
+
     try {
-        const formData = {
-            FullName: fullName,
-            ContactNo: contactNo,
-            District: selectedDistrict,
-            GNDivision: selectedGnDivision,
-            DateTime: new Date(dateTime).toISOString(),
-            Symptoms: symptoms,
-            ImageUrl: fileUrl || ""
-        };
+      const reportData = {
+        reporter_name,
+        contact_no,
+        district,
+        gn_division,
+        date_time: new Date(date_time).toISOString(),
+        description,
+        image: image || "",
+        action: "Pending"
+      };
 
-        console.log('Submitting data:', formData); // Debug log
+      const response = await fetch("http://localhost:5158/Symptoms/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(reportData)
+      });
 
-        // Changed URL to match the controller's base endpoint
-        const response = await fetch("http://localhost:5069/api/Symptoms", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            body: JSON.stringify(formData)
-        });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP error! ${response.status}: ${errorText}`);
+      }
 
-        // Add more detailed error logging
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Server response:', {
-                status: response.status,
-                statusText: response.statusText,
-                body: errorText
-            });
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log('Success:', result);
-
-        if (result.success) {
-            setShowSuccess(true);
-            handleClear();
-        } else {
-            throw new Error(result.message || 'Submission failed');
-        }
+      const result = await response.json();
+      if (result.success || response.status === 200 || response.status === 201) {
+        setShowSuccess(true);
+        handleClear();
+      } else {
+        throw new Error(result.message || "Submission failed");
+      }
     } catch (error) {
-        console.error("Error details:", error);
-        alert("Failed to submit symptoms. Please try again.");
+      console.error("Error details:", error);
+      alert("Failed to submit symptoms. Please try again.");
     }
   };
 
   const districts = Object.keys(districtGnDivisions);
-  const gnDivisions = selectedDistrict ? districtGnDivisions[selectedDistrict] : [];
+  const gnDivisions = district ? districtGnDivisions[district] : [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-20 px-4 md:px-12 font-sans flex items-center justify-center">
@@ -103,38 +135,82 @@ export default function SubmitSymptoms() {
         <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 transition-all duration-300">
           <h1 className="text-3xl md:text-4xl font-bold text-center mb-8">Submit Symptoms</h1>
           <form ref={formRef} className="space-y-6" onSubmit={handleSubmit} autoComplete="off">
+            {/* Full Name */}
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
               <label className="block font-semibold text-base md:text-lg mb-1 md:w-44">Full Name</label>
-              <input
-                type="text"
-                required
-                placeholder="Enter your full name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
-              />
+              <div className="w-full flex flex-col">
+                <input
+                  type="text"
+                  required
+                  value={reporter_name}
+                  placeholder="Enter your full name"
+                  onChange={(e) => {
+                    setFullName(e.target.value);
+                    if (errors.reporter_name) setErrors(prev => ({ ...prev, reporter_name: "" }));
+                  }}
+                  onBlur={() => {
+                    if (!reporter_name.trim()) {
+                      setErrors(prev => ({ ...prev, reporter_name: "Full name is required" }));
+                    } else if (!/^[A-Za-z\s]+$/.test(reporter_name.trim())) {
+                      setErrors(prev => ({ ...prev, reporter_name: "Name can only contain letters and spaces" }));
+                    }
+                  }}
+                  className={`w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border ${
+                    errors.reporter_name ? "border-red-500" : "border-gray-300"
+                  } focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition`}
+                />
+                {errors.reporter_name && (
+                  <p className="text-red-500 text-sm mt-1 ml-2">{errors.reporter_name}</p>
+                )}
+              </div>
             </div>
+
             <div className="border-t border-gray-200" />
+
+            {/* Contact No */}
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
               <label className="block font-semibold text-base md:text-lg mb-1 md:w-44">Contact No</label>
-              <input
-                type="text"
-                required
-                placeholder="Enter your contact number"
-                value={contactNo}
-                onChange={(e) => setContactNo(e.target.value)}
-                className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
-              />
+              <div className="w-full flex flex-col">
+                <input
+                  type="tel"
+                  required
+                  placeholder="Enter 10-digit phone number"
+                  value={contact_no}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (/^\d*$/.test(value) && value.length <= 10) {
+                      setContactNo(value);
+                      if (errors.contact_no) {
+                        setErrors(prev => ({ ...prev, contact_no: "" }));
+                      }
+                    }
+                  }}
+                  onBlur={() => {
+                    const error = validatePhoneNumber(contact_no);
+                    setErrors(prev => ({ ...prev, contact_no: error }));
+                  }}
+                  maxLength={10}
+                  className={`w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border ${
+                    errors.contact_no ? "border-red-500" : "border-gray-300"
+                  } focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition`}
+                />
+                {errors.contact_no && (
+                  <p className="text-red-500 text-sm mt-1 ml-2">{errors.contact_no}</p>
+                )}
+              </div>
             </div>
+
             <div className="border-t border-gray-200" />
+
+            {/* District */}
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
               <label className="block font-semibold text-base md:text-lg mb-1 md:w-44">District</label>
               <select
                 required
-                value={selectedDistrict}
+                value={district}
                 onChange={e => {
                   setSelectedDistrict(e.target.value);
-                  setSelectedGnDivision(""); // Reset GN Division when district changes
+                  setSelectedGnDivision("");
                 }}
                 className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
               >
@@ -144,15 +220,18 @@ export default function SubmitSymptoms() {
                 ))}
               </select>
             </div>
+
             <div className="border-t border-gray-200" />
+
+            {/* GN Division */}
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
               <label className="block font-semibold text-base md:text-lg mb-1 md:w-44">GN Division</label>
               <select
                 required
-                value={selectedGnDivision}
+                value={gn_division}
                 onChange={e => setSelectedGnDivision(e.target.value)}
                 className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
-                disabled={!selectedDistrict}
+                disabled={!district}
               >
                 <option value="">Select GN Division</option>
                 {gnDivisions.map(gnd => (
@@ -160,29 +239,55 @@ export default function SubmitSymptoms() {
                 ))}
               </select>
             </div>
+
             <div className="border-t border-gray-200" />
+
+            {/* Date & Time */}
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
               <label className="block font-semibold text-base md:text-lg mb-1 md:w-44">Date and Time</label>
               <input
                 type="datetime-local"
                 required
-                value={dateTime}
+                value={date_time}
                 onChange={(e) => setDateTime(e.target.value)}
                 className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
               />
             </div>
+
             <div className="border-t border-gray-200" />
+
+            {/* Symptoms */}
             <div className="flex flex-col gap-1 md:flex-row md:items-start">
               <label className="block font-semibold text-base md:text-lg mb-1 md:w-44 md:mt-2">Symptoms</label>
-              <textarea
-                required
-                placeholder="Describe your symptoms"
-                value={symptoms}
-                onChange={(e) => setSymptoms(e.target.value)}
-                className="w-full bg-gray-100 rounded-lg h-24 md:h-28 px-4 py-2 text-base md:text-lg focus:outline-none md:ml-2 resize-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
-              />
+              <div className="w-full flex flex-col">
+                <textarea
+                  required
+                  placeholder="Describe your symptoms"
+                  value={description}
+                  onChange={(e) => {
+                    setSymptoms(e.target.value);
+                    if (errors.description) setErrors(prev => ({ ...prev, description: "" }));
+                  }}
+                  onBlur={() => {
+                    if (!description.trim()) {
+                      setErrors(prev => ({ ...prev, description: "Symptoms description is required" }));
+                    } else if (description.trim().length < 10) {
+                      setErrors(prev => ({ ...prev, description: "Symptoms should be at least 10 characters long" }));
+                    }
+                  }}
+                  className={`w-full bg-gray-100 rounded-lg h-24 md:h-28 px-4 py-2 text-base md:text-lg focus:outline-none md:ml-2 resize-none border ${
+                    errors.description ? "border-red-500" : "border-gray-300"
+                  } focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition`}
+                />
+                {errors.description && (
+                  <p className="text-red-500 text-sm mt-1 ml-2">{errors.description}</p>
+                )}
+              </div>
             </div>
+
             <div className="border-t border-gray-200" />
+
+            {/* Upload Image */}
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
               <label className="block font-semibold text-base md:text-lg mb-1 md:w-44">Upload Image</label>
               <div className="w-full flex flex-col md:flex-row md:items-center md:ml-2">
@@ -206,8 +311,8 @@ export default function SubmitSymptoms() {
                 </label>
                 {fileName && (
                   <div className="flex items-center space-x-2 mt-2 md:mt-0">
-                    {fileUrl ? (
-                      <img src={fileUrl} alt="Preview" className="w-16 h-16 object-cover rounded border" />
+                    {image ? (
+                      <img src={image} alt="Preview" className="w-16 h-16 object-cover rounded border" />
                     ) : (
                       <span className="text-green-700 font-semibold">File uploaded</span>
                     )}
@@ -216,6 +321,7 @@ export default function SubmitSymptoms() {
                 )}
               </div>
             </div>
+
             <div className="flex justify-center mt-2">
               <button
                 type="submit"
@@ -226,7 +332,8 @@ export default function SubmitSymptoms() {
             </div>
           </form>
         </div>
-        {/* Success Popup */}
+
+        {/* Success Message */}
         {showSuccess && (
           <>
             <div className="fixed inset-0 bg-black bg-opacity-30 z-40 transition-opacity animate-fadeIn"></div>
@@ -243,7 +350,3 @@ export default function SubmitSymptoms() {
     </div>
   );
 }
-
-// Add fadeIn animation to your global CSS or Tailwind config if not already present:
-// @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-// .animate-fadeIn { animation: fadeIn 0.3s ease; }

@@ -1,86 +1,63 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
-const contributions = [
-  { district: "Galle", gnDivision: "Galle Town", type: "Evacuation", description: "Moved people to shelter" },
-  { district: "Matara", gnDivision: "Weligama", type: "First Aid", description: "Given first aid" },
-  { district: "Hambantota", gnDivision: "Ambalantota", type: "Supply Distribution", description: "Given supplies" },
-];
+type Contribution = {
+  district: string;
+  type_support: string;
+  description: string;
+};
 
 export default function MyContributions() {
-  const [districtFilter, setDistrictFilter] = useState("");
-  const [gnDivisionFilter, setGnDivisionFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
+  const [contributions, setContributions] = useState<Contribution[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Get unique values for filters
-  const districts = Array.from(new Set(contributions.map((c) => c.district)));
-  // Only show GN Divisions for selected district, or all if none selected
-  const gnDivisions = Array.from(
-    new Set(
-      contributions
-        .filter((c) => !districtFilter || c.district === districtFilter)
-        .map((c) => c.gnDivision)
-    )
-  );
-  const types = Array.from(new Set(contributions.map((c) => c.type)));
+  useEffect(() => {
+    const fetchContributions = async () => {
+      const volunteerData = localStorage.getItem("volunteerData");
+      if (!volunteerData) {
+        setError("You must be logged in as a volunteer to see contributions.");
+        setLoading(false);
+        return;
+      }
 
-  // Filtered contributions
-  const filteredContributions = contributions.filter(
-    (c) =>
-      (!districtFilter || c.district === districtFilter) &&
-      (!gnDivisionFilter || c.gnDivision === gnDivisionFilter) &&
-      (!typeFilter || c.type === typeFilter)
-  );
+      const { userId } = JSON.parse(volunteerData);
+
+      try {
+        const response = await fetch(`https://localhost:7096/Contribution/volunteer/${userId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch contributions");
+        }
+        const data = await response.json();
+        setContributions(data);
+      } catch (err: any) {
+        setError(err.message || "An error occurred while fetching contributions.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContributions();
+  }, []);
+
+  if (loading) return <div>Loading contributions...</div>;
+  if (error) return <div className="text-red-600">{error}</div>;
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-transparent">
       <div className="w-full max-w-4xl bg-white/90 rounded-3xl shadow-xl border border-blue-100 p-3 sm:p-6 md:p-8 mt-2 sm:mt-6 md:mt-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-8 gap-2">
           <h1 className="text-xl sm:text-3xl md:text-4xl font-bold text-gray-900">My Contributions</h1>
-          <div className="flex flex-wrap gap-2 items-center">
-            <select
-              className="px-3 py-1 rounded-lg border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={districtFilter}
-              onChange={e => {
-                setDistrictFilter(e.target.value);
-                setGnDivisionFilter(""); // Reset GN Division when district changes
-              }}
+          <div className="flex items-center gap-2">
+            <span className="text-gray-700 font-medium text-base sm:text-lg">Filter</span>
+            <svg
+              className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
             >
-              <option value="">All Districts</option>
-              {districts.map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
-            <select
-              className="px-3 py-1 rounded-lg border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={gnDivisionFilter}
-              onChange={e => setGnDivisionFilter(e.target.value)}
-              disabled={gnDivisions.length === 0}
-            >
-              <option value="">All GN Divisions</option>
-              {gnDivisions.map((g) => (
-                <option key={g} value={g}>{g}</option>
-              ))}
-            </select>
-            <select
-              className="px-3 py-1 rounded-lg border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={typeFilter}
-              onChange={e => setTypeFilter(e.target.value)}
-            >
-              <option value="">All Types</option>
-              {types.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-            <button
-              className="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full px-4 py-1 font-semibold shadow hover:scale-105 transition-all"
-              onClick={() => {
-                setDistrictFilter("");
-                setGnDivisionFilter("");
-                setTypeFilter("");
-              }}
-            >
-              Reset
-            </button>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h18M6 10h12M9 15h6" />
+            </svg>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -88,26 +65,25 @@ export default function MyContributions() {
             <thead>
               <tr>
                 <th className="px-2 sm:px-6 py-2 sm:py-4 text-left font-semibold text-gray-700 border-b">District</th>
-                <th className="px-2 sm:px-6 py-2 sm:py-4 text-left font-semibold text-gray-700 border-b">GN Division</th>
                 <th className="px-2 sm:px-6 py-2 sm:py-4 text-left font-semibold text-gray-700 border-b">Type</th>
                 <th className="px-2 sm:px-6 py-2 sm:py-4 text-left font-semibold text-gray-700 border-b">Description</th>
               </tr>
             </thead>
             <tbody>
-              {filteredContributions.map((c, i) => (
-                <tr key={i} className="hover:bg-blue-50 transition">
-                  <td className="px-2 sm:px-6 py-2 sm:py-4 border-b">{c.district}</td>
-                  <td className="px-2 sm:px-6 py-2 sm:py-4 border-b">{c.gnDivision}</td>
-                  <td className="px-2 sm:px-6 py-2 sm:py-4 border-b">{c.type}</td>
-                  <td className="px-2 sm:px-6 py-2 sm:py-4 border-b">{c.description}</td>
-                </tr>
-              ))}
-              {filteredContributions.length === 0 && (
+              {contributions.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-4 text-center text-gray-400">
-                    No contributions found for selected filters.
+                  <td colSpan={3} className="text-center py-6 text-gray-500">
+                    No contributions found.
                   </td>
                 </tr>
+              ) : (
+                contributions.map((c, i) => (
+                  <tr key={i} className="hover:bg-blue-50 transition">
+                    <td className="px-2 sm:px-6 py-2 sm:py-4 border-b">{c.district}</td>
+                    <td className="px-2 sm:px-6 py-2 sm:py-4 border-b">{c.type_support}</td>
+                    <td className="px-2 sm:px-6 py-2 sm:py-4 border-b">{c.description}</td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

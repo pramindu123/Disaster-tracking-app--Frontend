@@ -2,110 +2,9 @@ import React, { useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import districtGnDivisions from "../data/districtGnDivisions";
 
-// Use real districts and GN Divisions from data file
-const aidRequests = [
-  {
-    id: 1,
-    recipientName: "Saman Perera",
-    type: "Dry rations",
-    district: "Colombo",
-    gnDivision: "Nugegoda",
-    gnOfficer: "Mr.Ruwan Senanayake",
-    gnContactNo: "0769561473"
-  },
-  {
-    id: 2,
-    recipientName: "Nimal Perera",
-    type: "Clothing",
-    district: "Gampaha",
-    gnDivision: "Ragama",
-    gnOfficer: "Ms.Thharushi Raja",
-    gnContactNo: "0729631474"
-  },
-  {
-    id: 3,
-    recipientName: "Kumari Jayasuriya",
-    type: "Medical Supplies",
-    district: "Kandy",
-    gnDivision: "Peradeniya",
-    gnOfficer: "Mr.Duleetha Amar",
-    gnContactNo: "0756412379"
-  },
-  {
-    id: 4,
-    recipientName: "Ruwanthi Fernando",
-    type: "Temporary Shelter",
-    district: "Matara",
-    gnDivision: "Weligama Town",
-    gnOfficer: "Ms.Malini Jayawe",
-    gnContactNo: "0743697412"
-  },
-  {
-    id: 5,
-    recipientName: "Priyantha Rathnayake",
-    type: "Drinking Water",
-    district: "Puttalam",
-    gnDivision: "Chilaw Town",
-    gnOfficer: "Ms.Pradeepa Rup",
-    gnContactNo: "0772336974"
-  },
-  {
-    id: 6,
-    recipientName: "Harsha Ekanayake",
-    type: "Baby Essentials",
-    district: "Badulla",
-    gnDivision: "Bandarawela",
-    gnOfficer: "Mr.Nimal Perera",
-    gnContactNo: "0764435794"
-  },
-  {
-    id: 7,
-    recipientName: "Sunil Jayawardena",
-    type: "Medical Supplies",
-    district: "Trincomalee",
-    gnDivision: "Kinniya",
-    gnOfficer: "Ms.Indu Pathirana",
-    gnContactNo: "0771234567"
-  },
-  {
-    id: 8,
-    recipientName: "Chathurika Fernando",
-    type: "Clothing",
-    district: "Jaffna",
-    gnDivision: "Nallur",
-    gnOfficer: "Mr.Suren Raj",
-    gnContactNo: "0712345678"
-  },
-  {
-    id: 9,
-    recipientName: "Ramesh Perera",
-    type: "Dry rations",
-    district: "Hambantota",
-    gnDivision: "Tangalle Town",
-    gnOfficer: "Ms.Sanduni Silva",
-    gnContactNo: "0759876543"
-  },
-  {
-    id: 10,
-    recipientName: "Dilani Weerasinghe",
-    type: "Temporary Shelter",
-    district: "Kalutara",
-    gnDivision: "Panadura North",
-    gnOfficer: "Mr.Kasun Jayasuriya",
-    gnContactNo: "0784561230"
-  }
-];
 const rowsPerPage = 6;
 
-// For filters
-const aidTypes = Array.from(new Set(aidRequests.map(r => r.type)));
-const districts = Object.keys(districtGnDivisions);
-const gnDivisions = (selectedDistrict: string | null) =>
-  selectedDistrict
-    ? districtGnDivisions[selectedDistrict] || []
-    : Array.from(new Set(aidRequests.map(r => r.gnDivision)));
-
-function StatCard({ icon, value, label, color, inView }: { icon: string, value: number, label: string, color: string, inView: boolean }) {
+function StatCard({ icon, value, label, color, inView }: { icon: string; value: number; label: string; color: string; inView: boolean }) {
   const [count, setCount] = useState(0);
   useEffect(() => {
     if (!inView) return;
@@ -141,6 +40,14 @@ function StatCard({ icon, value, label, color, inView }: { icon: string, value: 
 }
 
 export default function Home() {
+  // State for aid requests fetched from backend
+  const [aidRequests, setAidRequests] = useState<any[]>([]);
+
+  // Dynamic stats states
+const [activeVolunteers, setActiveVolunteers] = useState(0);
+  const [alertsSent, setAlertsSent] = useState(0);
+  const [aidDelivered, setAidDelivered] = useState(0);
+
   const [page, setPage] = useState(1);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
@@ -151,7 +58,7 @@ export default function Home() {
   const [statsInView, setStatsInView] = useState(false);
 
   const handleLearnMore = () => {
-    aboutRef.current?.scrollIntoView({ behavior: 'smooth' });
+    aboutRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -163,11 +70,64 @@ export default function Home() {
     return () => observer.disconnect();
   }, []);
 
+  // ✅ Fetch Aid Requests for table only (no aid count from here)
+  useEffect(() => {
+    async function fetchAidRequests() {
+      try {
+        const response = await fetch("http://localhost:5158/AidRequest/dmc-approved");
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        setAidRequests(data);
+      } catch (error) {
+        console.error("Failed to fetch aid requests:", error);
+      }
+    }
+    fetchAidRequests();
+  }, []);
+
+  // ✅ NEW: Fetch all 3 stats from StatisticsController
+  useEffect(() => {
+    async function fetchStatistics() {
+      try {
+        const [volRes, alertRes, aidRes] = await Promise.all([
+          fetch("http://localhost:5158/active-volunteers-count"),
+          fetch("http://localhost:5158/alerts-sent-count"),
+          fetch("http://localhost:5158/total-aid-requests-count"),
+        ]);
+
+        if (!volRes.ok || !alertRes.ok || !aidRes.ok) {
+          throw new Error("Failed to fetch one or more statistics");
+        }
+
+        const volData = await volRes.json();
+        const alertData = await alertRes.json();
+        const aidData = await aidRes.json();
+
+        setActiveVolunteers(volData.count);
+        setAlertsSent(alertData.count);
+        setAidDelivered(aidData.count);
+      } catch (error) {
+        console.error("Error fetching statistics:", error);
+      }
+    }
+
+    fetchStatistics();
+  }, []);
+
+  // Dynamic lists for filters
+  const aidTypes = Array.from(new Set(aidRequests.map(r => r.type_support || r.type || "").filter(Boolean)));
+  const districts = Object.keys(districtGnDivisions);
+
+  // GN divisions depend on selected district or fallback from data
+  const gnDivisions = selectedDistrict
+    ? districtGnDivisions[selectedDistrict] || []
+    : Array.from(new Set(aidRequests.map(r => r.gn_division || r.gnDivision || "").filter(Boolean)));
+
   // Filtering logic
   const filteredAidRequests = aidRequests.filter(req => {
-    if (selectedType && req.type !== selectedType) return false;
+    if (selectedType && req.type_support !== selectedType && req.type !== selectedType) return false;
     if (selectedDistrict && req.district !== selectedDistrict) return false;
-    if (selectedGnDivision && req.gnDivision !== selectedGnDivision) return false;
+    if (selectedGnDivision && (req.gn_division !== selectedGnDivision && req.gnDivision !== selectedGnDivision)) return false;
     return true;
   });
 
@@ -248,10 +208,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { label: 'Active Volunteers', value: 1200, icon: '👥', color: 'from-blue-500 to-blue-600' },
-              { label: 'Alerts Sent', value: 3500, icon: '🔔', color: 'from-purple-500 to-purple-600' },
-              { label: 'Aid Delivered', value: 2800, icon: '✅', color: 'from-green-500 to-green-600' },
-            ].map((stat, idx) => (
+              { label: "Active Volunteers", value: activeVolunteers, icon: "👥", color: "from-blue-500 to-blue-600" },
+              { label: "Alerts Sent", value: alertsSent, icon: "🔔", color: "from-purple-500 to-purple-600" },
+              { label: "Aid Requested", value: aidDelivered, icon: "✅", color: "from-green-500 to-green-600" },
+            ].map((stat) => (
               <StatCard key={stat.label} {...stat} inView={statsInView} />
             ))}
           </div>
@@ -260,44 +220,61 @@ export default function Home() {
 
       {/* Countdown Section */}
       <section>
-        {/* ...your countdown JSX here... */}
+        {/* You can keep your countdown JSX here */}
       </section>
 
       {/* Recent Aid Requests Section (modern table + filters) */}
       <section className="w-full mt-12">
         <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 max-w-full">
           <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-800">Recent Aid Requests</h2>
+
           {/* Filters */}
           <div className="mb-6 bg-blue-50 rounded-xl p-4 flex flex-wrap items-center gap-4">
             <span className="font-semibold text-gray-700">Filter by:</span>
             <select
               className="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none"
               value={selectedType || ""}
-              onChange={e => { setSelectedType(e.target.value || null); setPage(1); }}
+              onChange={(e) => {
+                setSelectedType(e.target.value || null);
+                setPage(1);
+              }}
             >
               <option value="">Request Type</option>
-              {aidTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
+              {aidTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
               ))}
             </select>
             <select
               className="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none"
               value={selectedDistrict || ""}
-              onChange={e => { setSelectedDistrict(e.target.value || null); setPage(1); }}
+              onChange={(e) => {
+                setSelectedDistrict(e.target.value || null);
+                setSelectedGnDivision(null); // Reset GN division on district change
+                setPage(1);
+              }}
             >
               <option value="">District</option>
-              {districts.map(d => (
-                <option key={d} value={d}>{d}</option>
+              {districts.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
               ))}
             </select>
             <select
               className="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none"
               value={selectedGnDivision || ""}
-              onChange={e => { setSelectedGnDivision(e.target.value || null); setPage(1); }}
+              onChange={(e) => {
+                setSelectedGnDivision(e.target.value || null);
+                setPage(1);
+              }}
             >
               <option value="">GN Division</option>
-              {gnDivisions(selectedDistrict).map(gnd => (
-                <option key={gnd} value={gnd}>{gnd}</option>
+              {gnDivisions.map((gnd) => (
+                <option key={gnd} value={gnd}>
+                  {gnd}
+                </option>
               ))}
             </select>
             <button
@@ -307,6 +284,7 @@ export default function Home() {
               Reset
             </button>
           </div>
+
           <div className="w-full overflow-x-auto">
             <table className="min-w-[900px] w-full divide-y divide-gray-200 rounded-xl overflow-hidden shadow">
               <thead className="bg-gradient-to-r from-blue-600 to-purple-600">
@@ -329,19 +307,20 @@ export default function Home() {
                   </tr>
                 )}
                 {paginatedRows.map((req, idx) => (
-                  <tr key={req.id}>
+                  <tr key={req.aid_id || req.id || idx}>
                     <td className="px-6 py-4 whitespace-nowrap">{(page - 1) * rowsPerPage + idx + 1}</td>
-                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-blue-700">{req.recipientName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{req.type}</td>
+                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-blue-700">{req.full_name || req.recipientName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{req.type_support || req.type}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{req.district}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{req.gnDivision}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{req.gnOfficer}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{req.gnContactNo}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{req.gn_division || req.gnDivision}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{req.gn_officer || req.gnOfficer || "N/A"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{req.gn_contact_no || req.gnContactNo || "N/A"}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
           {/* Pagination */}
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
             <div className="flex items-center justify-between">
@@ -375,8 +354,8 @@ export default function Home() {
                       key={num}
                       className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                         page === num
-                          ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                          ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                          : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
                       }`}
                       onClick={() => setPage(num)}
                     >

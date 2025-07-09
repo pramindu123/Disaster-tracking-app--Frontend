@@ -3,22 +3,69 @@ import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [role, setRole] = useState("GN Officer");
-  const [username, setUsername] = useState("");
+  const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Navigate based on selected role
-    if (role === "GN Officer") {
-      navigate("/gn-dashboard");
-    } else if (role === "DMC Officer") {
-      navigate("/dmc-dashboard");
-    } else if (role === "Volunteer") {
-      navigate("/volunteer-dashboard");
-    } else {
-      alert("Invalid role selected.");
+    try {
+      const response = await fetch("http://localhost:5158/User/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userId: parseInt(userId),
+          password: password
+        })
+      });
+
+      const data = await response.json();
+      console.log("Login response:", data);
+      console.log("fullName:", data.fullName, "contactNo:", data.contactNo, "district:", data.district);
+
+
+      if (!response.ok) {
+        alert(data.message || "Login failed. Please check your credentials.");
+        return;
+      }
+
+      const selectedRole = role === "GN Officer" ? "GN"
+                          : role === "DMC Officer" ? "DMC"
+                          : "Volunteer";
+
+      if (data.role.toLowerCase() !== selectedRole.toLowerCase()) {
+        alert("Role mismatch. Please select the correct role for this user.");
+        return;
+      }
+
+      // Normalize keys before storing in localStorage
+      const normalizedData = {
+        userId: data.userId,
+        role: data.role,
+        message: data.message,
+        gnDivision: data.gnDivision ?? null,
+        fullName: data.fullName || data.FullName || data.name || "",
+        contactNo: data.contactNo || data.ContactNo || "",
+        district: data.district || data.District || "",
+      };
+
+      if (data.role.toLowerCase() === "gn") {
+        localStorage.setItem("gnOfficerData", JSON.stringify(normalizedData));
+        navigate("/gn-dashboard");
+      } else if (data.role.toLowerCase() === "dmc") {
+        localStorage.setItem("dmcOfficerData", JSON.stringify(normalizedData));
+        navigate("/dmc-dashboard");
+      } else if (data.role.toLowerCase() === "volunteer") {
+        localStorage.setItem("volunteerData", JSON.stringify(normalizedData));
+        navigate("/volunteer-dashboard");
+      }
+
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("An error occurred during login. Please try again.");
     }
   };
 
@@ -29,35 +76,30 @@ export default function Login() {
         <form className="space-y-6" onSubmit={handleLogin}>
           <div>
             <label className="block text-lg font-medium mb-2">Role</label>
-            <div className="relative">
-              <select
-                value={role}
-                onChange={e => setRole(e.target.value)}
-                className="w-full bg-gray-100 rounded-lg h-12 px-4 pr-10 text-lg focus:outline-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition appearance-none"
-                required
-              >
-                <option value="GN Officer">GN Officer</option>
-                <option value="DMC Officer">DMC Officer</option>
-                <option value="Volunteer">Volunteer</option>
-              </select>
-              <span className="pointer-events-none absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </span>
-            </div>
+            <select
+              value={role}
+              onChange={e => setRole(e.target.value)}
+              className="w-full bg-gray-100 rounded-lg h-12 px-4 pr-10 text-lg border border-gray-300"
+              required
+            >
+              <option value="GN Officer">GN Officer</option>
+              <option value="DMC Officer">DMC Officer</option>
+              <option value="Volunteer">Volunteer</option>
+            </select>
           </div>
+
           <div>
             <label className="block text-lg font-medium mb-2">User ID</label>
             <input
-              type="text"
+              type="number"
               required
-              value={username}
-              onChange={e => setUsername(e.target.value)}
+              value={userId}
+              onChange={e => setUserId(e.target.value)}
               placeholder="Enter your user ID"
-              className="w-full bg-gray-100 rounded-lg h-12 px-4 text-lg focus:outline-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+              className="w-full bg-gray-100 rounded-lg h-12 px-4 text-lg border border-gray-300"
             />
           </div>
+
           <div>
             <label className="block text-lg font-medium mb-2">Password</label>
             <input
@@ -66,21 +108,29 @@ export default function Login() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="Enter your password"
-              className="w-full bg-gray-100 rounded-lg h-12 px-4 text-lg focus:outline-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+              className="w-full bg-gray-100 rounded-lg h-12 px-4 text-lg border border-gray-300"
             />
           </div>
+
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white rounded-xl px-10 py-3 text-xl font-bold shadow hover:bg-blue-700 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="w-full bg-blue-600 text-white rounded-xl px-10 py-3 text-xl font-bold shadow hover:bg-blue-700 transition"
           >
             Log In
           </button>
         </form>
+
         <div className="mt-6 text-center">
           <span className="text-gray-600">Don't have an account?</span>
-          <Link to="/signup" className="ml-2 text-blue-600 font-semibold hover:underline">Sign up as Volunteer</Link>
+          <Link to="/signup" className="ml-2 text-blue-600 font-semibold hover:underline">
+            Sign up as Volunteer
+          </Link>
         </div>
       </div>
     </div>
   );
 }
+
+
+
+
