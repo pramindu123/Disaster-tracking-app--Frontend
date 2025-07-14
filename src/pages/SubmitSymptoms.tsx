@@ -16,6 +16,7 @@ export default function SubmitSymptoms() {
   const [description, setSymptoms] = useState("");
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string>("");
+  const [isLocationAutoDetected, setIsLocationAutoDetected] = useState(false);
 
   const [errors, setErrors] = useState({
     reporter_name: "",
@@ -96,6 +97,7 @@ export default function SubmitSymptoms() {
         
         setSelectedDistrict(location.district);
         setSelectedDivisionalSecretariat(location.divisionalSecretariat);
+        setIsLocationAutoDetected(true);
         setIsLoadingLocation(false);
       },
       (error) => {
@@ -158,6 +160,7 @@ export default function SubmitSymptoms() {
     setSymptoms("");
     setErrors({ reporter_name: "", contact_no: "", description: "" });
     setLocationError("");
+    setIsLocationAutoDetected(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -234,7 +237,7 @@ export default function SubmitSymptoms() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <p className="text-blue-700 text-sm md:text-base">
-                <strong>Tip:</strong> Use the "Use GPS" button to automatically detect your district and divisional secretariat based on your current location.
+                <strong>Location Detection:</strong> Use "Use GPS" to auto-detect your location, or manually select your district and divisional secretariat. You can change auto-detected locations if they're incorrect.
               </p>
             </div>
           </div>
@@ -317,6 +320,7 @@ export default function SubmitSymptoms() {
                     onChange={e => {
                       setSelectedDistrict(e.target.value);
                       setSelectedDivisionalSecretariat("");
+                      setIsLocationAutoDetected(false); // Reset auto-detected flag when manually changed
                     }}
                     className="flex-1 bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
                   >
@@ -366,7 +370,10 @@ export default function SubmitSymptoms() {
                 <select
                   required
                   value={divisional_secretariat}
-                  onChange={e => setSelectedDivisionalSecretariat(e.target.value)}
+                  onChange={e => {
+                    setSelectedDivisionalSecretariat(e.target.value);
+                    setIsLocationAutoDetected(false); // Reset auto-detected flag when manually changed
+                  }}
                   className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
                   disabled={!district}
                 >
@@ -376,13 +383,29 @@ export default function SubmitSymptoms() {
                   ))}
                 </select>
                 {district && divisional_secretariat && (
-                  <p className="text-green-600 text-sm mt-1 flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Location auto-detected: {district}, {divisional_secretariat}
-                  </p>
+                  <div className="mt-2">
+                    {isLocationAutoDetected ? (
+                      <p className="text-green-600 text-sm flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Location auto-detected: {district}, {divisional_secretariat}
+                      </p>
+                    ) : (
+                      <p className="text-blue-600 text-sm flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        Location manually selected: {district}, {divisional_secretariat}
+                      </p>
+                    )}
+                    {isLocationAutoDetected && (
+                      <p className="text-gray-500 text-xs mt-1 ml-5">
+                        You can change the selections above if the auto-detected location is incorrect.
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
