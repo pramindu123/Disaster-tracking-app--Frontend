@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import districtGnDivisions from "../data/districtGnDivisions";
+import districtDivisionalSecretariats from "../data/districtDivisionalSecretariats";
 
 const rowsPerPage = 6;
 
@@ -51,7 +51,7 @@ const [activeVolunteers, setActiveVolunteers] = useState(0);
   const [page, setPage] = useState(1);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
-  const [selectedGnDivision, setSelectedGnDivision] = useState<string | null>(null);
+  const [selectedDivisionalSecretariat, setSelectedDivisionalSecretariat] = useState<string | null>(null);
 
   const aboutRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
@@ -116,18 +116,18 @@ const [activeVolunteers, setActiveVolunteers] = useState(0);
 
   // Dynamic lists for filters
   const aidTypes = Array.from(new Set(aidRequests.map(r => r.type_support || r.type || "").filter(Boolean)));
-  const districts = Object.keys(districtGnDivisions);
+  const districts = Object.keys(districtDivisionalSecretariats);
 
-  // GN divisions depend on selected district or fallback from data
-  const gnDivisions = selectedDistrict
-    ? districtGnDivisions[selectedDistrict] || []
-    : Array.from(new Set(aidRequests.map(r => r.gn_division || r.gnDivision || "").filter(Boolean)));
+  // Divisional secretariats depend on selected district or fallback from data
+  const divisionalSecretariats = selectedDistrict
+    ? districtDivisionalSecretariats[selectedDistrict] || []
+    : Array.from(new Set(aidRequests.map(r => r.divisional_secretariat || r.divisionalSecretariat || "").filter(Boolean)));
 
   // Filtering logic
   const filteredAidRequests = aidRequests.filter(req => {
     if (selectedType && req.type_support !== selectedType && req.type !== selectedType) return false;
     if (selectedDistrict && req.district !== selectedDistrict) return false;
-    if (selectedGnDivision && (req.gn_division !== selectedGnDivision && req.gnDivision !== selectedGnDivision)) return false;
+    if (selectedDivisionalSecretariat && (req.divisional_secretariat !== selectedDivisionalSecretariat && req.divisionalSecretariat !== selectedDivisionalSecretariat)) return false;
     return true;
   });
 
@@ -143,7 +143,7 @@ const [activeVolunteers, setActiveVolunteers] = useState(0);
   const resetFilters = () => {
     setSelectedType(null);
     setSelectedDistrict(null);
-    setSelectedGnDivision(null);
+    setSelectedDivisionalSecretariat(null);
     setPage(1);
   };
 
@@ -251,7 +251,7 @@ const [activeVolunteers, setActiveVolunteers] = useState(0);
               value={selectedDistrict || ""}
               onChange={(e) => {
                 setSelectedDistrict(e.target.value || null);
-                setSelectedGnDivision(null); // Reset GN division on district change
+                setSelectedDivisionalSecretariat(null); // Reset divisional secretariat on district change
                 setPage(1);
               }}
             >
@@ -264,16 +264,16 @@ const [activeVolunteers, setActiveVolunteers] = useState(0);
             </select>
             <select
               className="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none"
-              value={selectedGnDivision || ""}
+              value={selectedDivisionalSecretariat || ""}
               onChange={(e) => {
-                setSelectedGnDivision(e.target.value || null);
+                setSelectedDivisionalSecretariat(e.target.value || null);
                 setPage(1);
               }}
             >
-              <option value="">GN Division</option>
-              {gnDivisions.map((gnd) => (
-                <option key={gnd} value={gnd}>
-                  {gnd}
+              <option value="">Divisional Secretariat</option>
+              {divisionalSecretariats.map((ds: string) => (
+                <option key={ds} value={ds}>
+                  {ds}
                 </option>
               ))}
             </select>

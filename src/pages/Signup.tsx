@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import districtGnDivisions from "../data/districtGnDivisions";
+import districtDivisionalSecretariats from "../data/districtDivisionalSecretariats";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -9,11 +9,11 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState<string>("");
-  const [selectedGnDivision, setSelectedGnDivision] = useState<string>("");
+  const [selectedDivisionalSecretariat, setSelectedDivisionalSecretariat] = useState<string>("");
   const [errors, setErrors] = useState<{ contact?: string; email?: string; confirm?: string }>({});
 
-  const districts = Object.keys(districtGnDivisions);
-  const gnDivisions = selectedDistrict ? districtGnDivisions[selectedDistrict] : [];
+  const districts = Object.keys(districtDivisionalSecretariats);
+  const divisionalSecretariats = selectedDistrict ? districtDivisionalSecretariats[selectedDistrict] : [];
 
   const validatePhoneNumber = (phone: string) => {
     const regex = /^\d{10}$/;
@@ -50,7 +50,7 @@ export default function Signup() {
       Email: email,
       Password: password,
       District: selectedDistrict,
-      GnDivision: selectedGnDivision,
+      DivisionalSecretariat: selectedDivisionalSecretariat,
       ContactNumber: contactNumber,
     };
 
@@ -79,7 +79,7 @@ export default function Signup() {
       setPassword("");
       setConfirmPassword("");
       setSelectedDistrict("");
-      setSelectedGnDivision("");
+      setSelectedDivisionalSecretariat("");
       setErrors({});
     } catch (err: any) {
       alert("Signup failed: " + err.message);
@@ -192,7 +192,7 @@ export default function Signup() {
               value={selectedDistrict}
               onChange={(e) => {
                 setSelectedDistrict(e.target.value);
-                setSelectedGnDivision("");
+                setSelectedDivisionalSecretariat("");
               }}
               className="w-full px-3 py-2 bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
             >
@@ -206,18 +206,18 @@ export default function Signup() {
           </div>
 
           <div>
-            <label className="block text-lg font-medium mb-2">GN Division</label>
+            <label className="block text-lg font-medium mb-2">Divisional Secretariat</label>
             <select
               required
-              value={selectedGnDivision}
-              onChange={(e) => setSelectedGnDivision(e.target.value)}
+              value={selectedDivisionalSecretariat}
+              onChange={(e) => setSelectedDivisionalSecretariat(e.target.value)}
               disabled={!selectedDistrict}
               className="w-full px-3 py-2 bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
             >
-              <option value="">Select GN Division</option>
-              {gnDivisions.map((gnd) => (
-                <option key={gnd} value={gnd}>
-                  {gnd}
+              <option value="">Select Divisional Secretariat</option>
+              {divisionalSecretariats.map((ds: string) => (
+                <option key={ds} value={ds}>
+                  {ds}
                 </option>
               ))}
             </select>

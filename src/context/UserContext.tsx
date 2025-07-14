@@ -4,7 +4,7 @@ export type User = {
   id: number;
   username: string;
   role: string;
-  gndivision?: string;
+  divisionalSecretariat?: string;
   district?: string;
   email?: string;
 };

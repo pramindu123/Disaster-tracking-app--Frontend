@@ -1,5 +1,5 @@
-import React, { useRef, useState } from "react";
-import districtGnDivisions from "../data/districtGnDivisions";
+import React, { useRef, useState, useEffect } from "react";
+import districtDivisionalSecretariats from "../data/districtDivisionalSecretariats";
 
 export default function SubmitSymptoms() {
   const formRef = useRef<HTMLFormElement>(null);
@@ -11,9 +11,11 @@ export default function SubmitSymptoms() {
   const [reporter_name, setFullName] = useState("");
   const [contact_no, setContactNo] = useState("");
   const [district, setSelectedDistrict] = useState<string>("");
-  const [gn_division, setSelectedGnDivision] = useState<string>("");
+  const [divisional_secretariat, setSelectedDivisionalSecretariat] = useState<string>("");
   const [date_time, setDateTime] = useState("");
   const [description, setSymptoms] = useState("");
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string>("");
 
   const [errors, setErrors] = useState({
     reporter_name: "",
@@ -27,6 +29,97 @@ export default function SubmitSymptoms() {
       return "Phone number must be exactly 10 digits";
     }
     return "";
+  };
+
+  // GPS Location Service - Maps coordinates to districts/divisional secretariats
+  const getLocationFromCoordinates = (latitude: number, longitude: number): { district: string; divisionalSecretariat: string } => {
+    // Sri Lanka coordinate bounds and district mapping
+    // This is a simplified mapping - in a real application, you'd use a proper geocoding service
+    const locationMappings = [
+      { bounds: { minLat: 6.7, maxLat: 7.0, minLng: 79.8, maxLng: 80.2 }, district: "Colombo", divisionalSecretariat: "Colombo" },
+      { bounds: { minLat: 6.9, maxLat: 7.2, minLng: 79.9, maxLng: 80.3 }, district: "Gampaha", divisionalSecretariat: "Gampaha" },
+      { bounds: { minLat: 6.5, maxLat: 6.8, minLng: 79.8, maxLng: 80.2 }, district: "Kalutara", divisionalSecretariat: "Kalutara" },
+      { bounds: { minLat: 7.2, maxLat: 7.4, minLng: 80.5, maxLng: 80.8 }, district: "Kandy", divisionalSecretariat: "Kandy" },
+      { bounds: { minLat: 7.4, maxLat: 7.6, minLng: 80.5, maxLng: 80.8 }, district: "Matale", divisionalSecretariat: "Matale" },
+      { bounds: { minLat: 6.9, maxLat: 7.1, minLng: 80.7, maxLng: 81.0 }, district: "Nuwara Eliya", divisionalSecretariat: "Nuwara Eliya" },
+      { bounds: { minLat: 6.0, maxLat: 6.3, minLng: 80.1, maxLng: 80.4 }, district: "Galle", divisionalSecretariat: "Galle" },
+      { bounds: { minLat: 5.9, maxLat: 6.2, minLng: 80.5, maxLng: 80.8 }, district: "Matara", divisionalSecretariat: "Matara" },
+      { bounds: { minLat: 6.1, maxLat: 6.4, minLng: 81.0, maxLng: 81.3 }, district: "Hambantota", divisionalSecretariat: "Hambantota" },
+      { bounds: { minLat: 9.5, maxLat: 9.8, minLng: 80.0, maxLng: 80.3 }, district: "Jaffna", divisionalSecretariat: "Jaffna" },
+      { bounds: { minLat: 9.3, maxLat: 9.6, minLng: 80.3, maxLng: 80.6 }, district: "Kilinochchi", divisionalSecretariat: "Kilinochchi" },
+      { bounds: { minLat: 8.9, maxLat: 9.2, minLng: 79.9, maxLng: 80.2 }, district: "Mannar", divisionalSecretariat: "Mannar" },
+      { bounds: { minLat: 8.7, maxLat: 9.0, minLng: 80.4, maxLng: 80.7 }, district: "Vavuniya", divisionalSecretariat: "Vavuniya" },
+      { bounds: { minLat: 9.0, maxLat: 9.3, minLng: 80.7, maxLng: 81.0 }, district: "Mullaitivu", divisionalSecretariat: "Mullaitivu" },
+      { bounds: { minLat: 7.7, maxLat: 8.0, minLng: 81.6, maxLng: 81.9 }, district: "Batticaloa", divisionalSecretariat: "Batticaloa" },
+      { bounds: { minLat: 7.2, maxLat: 7.5, minLng: 81.6, maxLng: 81.9 }, district: "Ampara", divisionalSecretariat: "Ampara" },
+      { bounds: { minLat: 8.5, maxLat: 8.8, minLng: 81.1, maxLng: 81.4 }, district: "Trincomalee", divisionalSecretariat: "Trincomalee" },
+      { bounds: { minLat: 7.4, maxLat: 7.7, minLng: 80.3, maxLng: 80.6 }, district: "Kurunegala", divisionalSecretariat: "Kurunegala" },
+      { bounds: { minLat: 8.0, maxLat: 8.3, minLng: 79.8, maxLng: 80.1 }, district: "Puttalam", divisionalSecretariat: "Puttalam" },
+      { bounds: { minLat: 8.3, maxLat: 8.6, minLng: 80.3, maxLng: 80.6 }, district: "Anuradhapura", divisionalSecretariat: "Anuradhapura East" },
+      { bounds: { minLat: 7.9, maxLat: 8.2, minLng: 80.9, maxLng: 81.2 }, district: "Polonnaruwa", divisionalSecretariat: "Polonnaruwa" },
+      { bounds: { minLat: 6.9, maxLat: 7.2, minLng: 81.0, maxLng: 81.3 }, district: "Badulla", divisionalSecretariat: "Badulla" },
+      { bounds: { minLat: 6.8, maxLat: 7.1, minLng: 81.3, maxLng: 81.6 }, district: "Monaragala", divisionalSecretariat: "Monaragala" },
+      { bounds: { minLat: 6.6, maxLat: 6.9, minLng: 80.3, maxLng: 80.6 }, district: "Ratnapura", divisionalSecretariat: "Ratnapura" },
+      { bounds: { minLat: 7.2, maxLat: 7.5, minLng: 80.3, maxLng: 80.6 }, district: "Kegalle", divisionalSecretariat: "Kegalle" }
+    ];
+
+    for (const mapping of locationMappings) {
+      const { bounds, district, divisionalSecretariat } = mapping;
+      if (
+        latitude >= bounds.minLat &&
+        latitude <= bounds.maxLat &&
+        longitude >= bounds.minLng &&
+        longitude <= bounds.maxLng
+      ) {
+        return { district, divisionalSecretariat };
+      }
+    }
+
+    // Default fallback if no mapping found
+    return { district: "Colombo", divisionalSecretariat: "Colombo" };
+  };
+
+  const getCurrentLocation = () => {
+    setIsLoadingLocation(true);
+    setLocationError("");
+
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by this browser");
+      setIsLoadingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const location = getLocationFromCoordinates(latitude, longitude);
+        
+        setSelectedDistrict(location.district);
+        setSelectedDivisionalSecretariat(location.divisionalSecretariat);
+        setIsLoadingLocation(false);
+      },
+      (error) => {
+        let errorMessage = "Unable to retrieve location";
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Location access denied by user";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Location information unavailable";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Location request timed out";
+            break;
+        }
+        setLocationError(errorMessage);
+        setIsLoadingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 600000 // 10 minutes
+      }
+    );
   };
 
   const validateForm = () => {
@@ -60,10 +153,11 @@ export default function SubmitSymptoms() {
     setFullName("");
     setContactNo("");
     setSelectedDistrict("");
-    setSelectedGnDivision("");
+    setSelectedDivisionalSecretariat("");
     setDateTime("");
     setSymptoms("");
     setErrors({ reporter_name: "", contact_no: "", description: "" });
+    setLocationError("");
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,7 +186,7 @@ export default function SubmitSymptoms() {
         reporter_name,
         contact_no,
         district,
-        gn_division,
+        divisional_secretariat,
         date_time: new Date(date_time).toISOString(),
         description,
         image: image || "",
@@ -126,14 +220,24 @@ export default function SubmitSymptoms() {
     }
   };
 
-  const districts = Object.keys(districtGnDivisions);
-  const gnDivisions = district ? districtGnDivisions[district] : [];
+  const districts = Object.keys(districtDivisionalSecretariats);
+  const divisionalSecretariats = district ? districtDivisionalSecretariats[district] : [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-20 px-4 md:px-12 font-sans flex items-center justify-center">
       <div className="w-full max-w-2xl mx-auto p-0 md:p-6">
         <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 transition-all duration-300">
-          <h1 className="text-3xl md:text-4xl font-bold text-center mb-8">Submit Symptoms</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-center mb-4">Submit Symptoms</h1>
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-8 rounded-r-lg">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 text-blue-400 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-blue-700 text-sm md:text-base">
+                <strong>Tip:</strong> Use the "Use GPS" button to automatically detect your district and divisional secretariat based on your current location.
+              </p>
+            </div>
+          </div>
           <form ref={formRef} className="space-y-6" onSubmit={handleSubmit} autoComplete="off">
             {/* Full Name */}
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
@@ -205,39 +309,82 @@ export default function SubmitSymptoms() {
             {/* District */}
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
               <label className="block font-semibold text-base md:text-lg mb-1 md:w-44">District</label>
-              <select
-                required
-                value={district}
-                onChange={e => {
-                  setSelectedDistrict(e.target.value);
-                  setSelectedGnDivision("");
-                }}
-                className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
-              >
-                <option value="">Select District</option>
-                {districts.map(d => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
+              <div className="w-full flex flex-col md:ml-2">
+                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                  <select
+                    required
+                    value={district}
+                    onChange={e => {
+                      setSelectedDistrict(e.target.value);
+                      setSelectedDivisionalSecretariat("");
+                    }}
+                    className="flex-1 bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                  >
+                    <option value="">Select District</option>
+                    {districts.map(d => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={getCurrentLocation}
+                    disabled={isLoadingLocation}
+                    className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-150 flex items-center gap-2 ${
+                      isLoadingLocation
+                        ? "bg-gray-400 text-white cursor-not-allowed"
+                        : "bg-green-600 text-white hover:bg-green-700 shadow"
+                    }`}
+                  >
+                    {isLoadingLocation ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Getting GPS...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Use GPS
+                      </>
+                    )}
+                  </button>
+                </div>
+                {locationError && (
+                  <p className="text-red-500 text-sm mt-1">{locationError}</p>
+                )}
+              </div>
             </div>
 
             <div className="border-t border-gray-200" />
 
-            {/* GN Division */}
+            {/* Divisional Secretariat */}
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
-              <label className="block font-semibold text-base md:text-lg mb-1 md:w-44">GN Division</label>
-              <select
-                required
-                value={gn_division}
-                onChange={e => setSelectedGnDivision(e.target.value)}
-                className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none md:ml-2 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
-                disabled={!district}
-              >
-                <option value="">Select GN Division</option>
-                {gnDivisions.map(gnd => (
-                  <option key={gnd} value={gnd}>{gnd}</option>
-                ))}
-              </select>
+              <label className="block font-semibold text-base md:text-lg mb-1 md:w-44">Divisional Secretariat</label>
+              <div className="w-full flex flex-col md:ml-2">
+                <select
+                  required
+                  value={divisional_secretariat}
+                  onChange={e => setSelectedDivisionalSecretariat(e.target.value)}
+                  className="w-full bg-gray-100 rounded-lg h-10 px-4 text-base md:text-lg focus:outline-none border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                  disabled={!district}
+                >
+                  <option value="">Select Divisional Secretariat</option>
+                  {divisionalSecretariats.map((ds: string) => (
+                    <option key={ds} value={ds}>{ds}</option>
+                  ))}
+                </select>
+                {district && divisional_secretariat && (
+                  <p className="text-green-600 text-sm mt-1 flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Location auto-detected: {district}, {divisional_secretariat}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="border-t border-gray-200" />

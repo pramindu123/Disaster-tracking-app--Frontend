@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import districtGnDivisions from "../data/districtGnDivisions";
+import districtDivisionalSecretariats from "../data/districtDivisionalSecretariats";
 
 const disasterTypes = ["Flood", "Landslide", "Cyclone", "Drought", "Fire"];
 const severityTypes = ["High", "Medium", "Low"];
@@ -9,7 +9,7 @@ type Alert = {
   id: number;
   type: string;
   district: string;
-  gnDivision: string;
+  divisionalSecretariat: string;
   severity: string;
   status: string;
   date: string;
@@ -20,12 +20,12 @@ export default function Alerts() {
   const [disasters, setDisasters] = useState<Alert[]>([]);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
-  const [selectedGnDivision, setSelectedGnDivision] = useState<string | null>(null);
+  const [selectedDivisionalSecretariat, setSelectedDivisionalSecretariat] = useState<string | null>(null);
   const [selectedSeverity, setSelectedSeverity] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>("Ongoing"); // default
 
-  const districts = Object.keys(districtGnDivisions);
-  const gnDivisions = selectedDistrict ? districtGnDivisions[selectedDistrict] : [];
+  const districts = Object.keys(districtDivisionalSecretariats);
+  const divisionalSecretariats = selectedDistrict ? districtDivisionalSecretariats[selectedDistrict] : [];
 
   useEffect(() => {
     const fetchAlerts = async () => {
@@ -44,7 +44,7 @@ export default function Alerts() {
   const filteredDisasters = disasters.filter(d =>
     (!selectedType || d.type === selectedType) &&
     (!selectedDistrict || d.district === selectedDistrict) &&
-    (!selectedGnDivision || d.gnDivision === selectedGnDivision) &&
+    (!selectedDivisionalSecretariat || d.divisionalSecretariat === selectedDivisionalSecretariat) &&
     (!selectedSeverity || d.severity === selectedSeverity) &&
     (!selectedStatus || d.status === selectedStatus)
   );
@@ -71,7 +71,7 @@ export default function Alerts() {
             value={selectedDistrict || ""}
             onChange={e => {
               setSelectedDistrict(e.target.value || null);
-              setSelectedGnDivision(null);
+              setSelectedDivisionalSecretariat(null);
             }}
           >
             <option value="">District</option>
@@ -82,13 +82,13 @@ export default function Alerts() {
 
           <select
             className="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none"
-            value={selectedGnDivision || ""}
-            onChange={e => setSelectedGnDivision(e.target.value || null)}
+            value={selectedDivisionalSecretariat || ""}
+            onChange={e => setSelectedDivisionalSecretariat(e.target.value || null)}
             disabled={!selectedDistrict}
           >
-            <option value="">GN Division</option>
-            {gnDivisions.map(gnd => (
-              <option key={gnd} value={gnd}>{gnd}</option>
+            <option value="">Divisional Secretariat</option>
+            {divisionalSecretariats.map((ds: string) => (
+              <option key={ds} value={ds}>{ds}</option>
             ))}
           </select>
 
@@ -123,7 +123,7 @@ export default function Alerts() {
                 <th className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">#</th>
                 <th className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Type</th>
                 <th className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">District</th>
-                <th className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">GN Division</th>
+                <th className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Divisional Secretariat</th>
                 <th className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Severity</th>
                 <th className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Date</th>
@@ -143,7 +143,7 @@ export default function Alerts() {
                   <td className="px-6 py-4">{idx + 1}</td>
                   <td className="px-6 py-4 font-semibold text-blue-700">{disaster.type}</td>
                   <td className="px-6 py-4">{disaster.district}</td>
-                  <td className="px-6 py-4">{disaster.gnDivision}</td>
+                  <td className="px-6 py-4">{disaster.divisionalSecretariat}</td>
                   <td className="px-6 py-4">
                     <span
                       className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
